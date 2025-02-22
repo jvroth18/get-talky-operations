@@ -327,3 +327,73 @@ def create_location(location: LocationCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(db_location)
     return location
+
+@app.get("/providers/{config_id}")
+def get_providers(config_id: int, db: Session = Depends(get_db)):
+    providers = db.query(Provider).filter(Provider.configuration_id == config_id).all()
+    return providers
+
+@app.get("/request_types/{config_id}")
+def get_request_types(config_id: int, db: Session = Depends(get_db)):
+    request_types = db.query(RequestType).filter(RequestType.configuration_id == config_id).all()
+    return request_types
+
+@app.get("/locations/{config_id}")
+def get_locations(config_id: int, db: Session = Depends(get_db)):
+    locations = db.query(Location).filter(Location.configuration_id == config_id).all()
+    return locations
+
+@app.get("/client_api_keys/{config_id}")
+def get_api_keys(config_id: int, db: Session = Depends(get_db)):
+    api_keys = db.query(ClientApiKey).filter(ClientApiKey.configuration_id == config_id).all()
+    return api_keys
+
+@app.get("/users/{config_id}")
+def get_users(config_id: int, db: Session = Depends(get_db)):
+    users = db.query(User).filter(User.configuration_id == config_id).all()
+    return users
+
+@app.delete("/providers/{provider_id}")
+def delete_provider(provider_id: int, db: Session = Depends(get_db)):
+    db_provider = db.query(Provider).filter(Provider.id == provider_id).first()
+    if not db_provider:
+        raise HTTPException(status_code=404, detail="Provider not found")
+    db.delete(db_provider)
+    db.commit()
+    return {"message": "Provider deleted successfully"}
+
+@app.delete("/request_types/{request_type_id}")
+def delete_request_type(request_type_id: int, db: Session = Depends(get_db)):
+    db_request_type = db.query(RequestType).filter(RequestType.id == request_type_id).first()
+    if not db_request_type:
+        raise HTTPException(status_code=404, detail="Request type not found")
+    db.delete(db_request_type)
+    db.commit()
+    return {"message": "Request type deleted successfully"}
+
+@app.delete("/locations/{location_id}")
+def delete_location(location_id: int, db: Session = Depends(get_db)):
+    db_location = db.query(Location).filter(Location.id == location_id).first()
+    if not db_location:
+        raise HTTPException(status_code=404, detail="Location not found")
+    db.delete(db_location)
+    db.commit()
+    return {"message": "Location deleted successfully"}
+
+@app.delete("/client_api_keys/{api_key_id}")
+def delete_api_key(api_key_id: int, db: Session = Depends(get_db)):
+    db_api_key = db.query(ClientApiKey).filter(ClientApiKey.id == api_key_id).first()
+    if not db_api_key:
+        raise HTTPException(status_code=404, detail="API key not found")
+    db.delete(db_api_key)
+    db.commit()
+    return {"message": "API key deleted successfully"}
+
+@app.delete("/users/{user_id}")
+def delete_user(user_id: int, db: Session = Depends(get_db)):
+    db_user = db.query(User).filter(User.id == user_id).first()
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    db.delete(db_user)
+    db.commit()
+    return {"message": "User deleted successfully"}

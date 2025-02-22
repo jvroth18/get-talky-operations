@@ -147,8 +147,8 @@ async function handleConfigurationSubmit(event, isEdit = false) {
   event.preventDefault();
   const form = event.target;
   const formData = {
-    name: form.querySelector(isEdit ? '#edit-config-name' : '#config-name')
-      .value,
+    name: form.querySelector(isEdit ? '#edit-config-name' : '#config-name').value,
+    client_id: form.querySelector(isEdit ? '#edit-client-id' : '#config-client-id').value,
     client_type_id: parseInt(
       form.querySelector(isEdit ? '#edit-client-type' : '#client-type').value
     ),
@@ -161,15 +161,18 @@ async function handleConfigurationSubmit(event, isEdit = false) {
     client_internal_id:
       form.querySelector(isEdit ? '#edit-client-internal-id' : '#client-internal-id')
         .value || undefined,
+    twilio_phone_number:
+      form.querySelector(isEdit ? '#edit-twilio-phone-number' : '#twilio-phone-number')
+        .value || undefined,
+    twilio_phone_number_sid:
+      form.querySelector(isEdit ? '#edit-twilio-phone-number-sid' : '#twilio-phone-number-sid')
+        .value || undefined,
     about_us:
       form.querySelector(isEdit ? '#edit-about-us' : '#about-us').value ||
       undefined,
     services:
       form.querySelector(isEdit ? '#edit-services' : '#services').value ||
-      undefined,
-    locations:
-      form.querySelector(isEdit ? '#edit-locations' : '#locations').value ||
-      undefined,
+      undefined
   };
 
   const method = isEdit ? 'PUT' : 'POST';

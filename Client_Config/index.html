@@ -389,15 +389,27 @@
           Configuration Details
         </h3>
         <form id="config-form" class="space-y-6">
-          <div>
-            <label class="form-label">Client Name</label>
-            <input
-              type="text"
-              id="config-name"
-              class="form-input"
-              required
-              placeholder="Enter Client Name"
-            />
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="form-label">Client Name</label>
+              <input
+                type="text"
+                id="config-name"
+                class="form-input"
+                required
+                placeholder="Enter Client Name"
+              />
+            </div>
+            <div>
+              <label class="form-label">Client ID (UUID)</label>
+              <input
+                type="text"
+                id="config-client-id"
+                class="form-input"
+                required
+                placeholder="Enter UUID"
+              />
+            </div>
           </div>
           <div>
             <label class="form-label">Client Type</label>
@@ -431,6 +443,26 @@
               class="form-input"
               placeholder="Enter Internal ID"
             />
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="form-label">Twilio Phone Number</label>
+              <input
+                type="text"
+                id="twilio-phone-number"
+                class="form-input"
+                placeholder="Enter Twilio Phone Number"
+              />
+            </div>
+            <div>
+              <label class="form-label">Twilio Phone Number SID</label>
+              <input
+                type="text"
+                id="twilio-phone-number-sid"
+                class="form-input"
+                placeholder="Enter Twilio Phone Number SID"
+              />
+            </div>
           </div>
           <div>
             <label class="form-label">About Us</label>

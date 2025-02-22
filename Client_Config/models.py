@@ -73,6 +73,8 @@ class Configuration(Base):
     client_type_id = Column(Integer, ForeignKey("get_talky_enum.client_type.id"))
     about_us = Column(String(255))
     services = Column(String(255))
+    twilio_phone_number = Column(String(255))
+    twilio_phone_number_sid = Column(String(255))
     # locations = Column(String(255))
 
     client_type = relationship("ClientType")
