@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="text-center">
+    <h1 class="display-4">Welcome to ACH File Generator</h1>
+    <p class="lead">Generate NACHA-formatted ACH files easily with our simple interface.</p>
+    <hr class="my-4">
+    <p>Click below to start creating a new ACH file:</p>
+    <a href="{{ url_for('create_file') }}" class="btn btn-primary btn-lg">Create ACH File</a>
+</div>
+{% endblock %} 

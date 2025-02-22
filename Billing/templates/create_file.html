@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Create ACH File</h2>
+<form method="POST" class="needs-validation" novalidate>
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4>File Header Information</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="destination_routing_number" class="form-label">Destination Routing Number</label>
+                    <input type="text" class="form-control" id="destination_routing_number" name="destination_routing_number" required pattern="\d{8,9}">
+                    <div class="form-text">The routing number of the receiving bank.</div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="origin_id" class="form-label">Origin ID (Company ID)</label>
+                    <input type="text" class="form-control" id="origin_id" name="origin_id" required>
+                    <div class="form-text">Your company's identification number assigned by the bank.</div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="destination_name" class="form-label">Destination Bank Name</label>
+                    <input type="text" class="form-control" id="destination_name" name="destination_name" required>
+                    <div class="form-text">The name of the receiving bank.</div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="origin_name" class="form-label">Origin Company Name</label>
+                    <input type="text" class="form-control" id="origin_name" name="origin_name" required>
+                    <div class="form-text">Your company's legal name.</div>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label for="reference_code" class="form-label">Reference Code (Optional)</label>
+                <input type="text" class="form-control" id="reference_code" name="reference_code" maxlength="8">
+                <div class="form-text">Optional reference code for this file (max 8 characters).</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="batches-container">
+        <!-- Template for a batch -->
+        <div class="batch-entry card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4>Batch Information</h4>
+                <button type="button" class="btn btn-danger btn-sm remove-batch" onclick="removeBatch(this)" style="display: none;">Remove Batch</button>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Batch Name</label>
+                        <input type="text" class="form-control" name="batches[0][batch_name]" required>
+                        <div class="form-text">Name for this specific batch of transactions.</div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Entry Description</label>
+                        <input type="text" class="form-control" name="batches[0][entry_description]" required maxlength="10">
+                        <div class="form-text">Description that will appear on statements (max 10 characters).</div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Company ID Number</label>
+                        <input type="text" class="form-control" name="batches[0][company_identification_number]" required>
+                        <div class="form-text">Usually the same as Origin ID unless this batch is for a different company division.</div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Entry Class Code</label>
+                        <select class="form-select" name="batches[0][entry_class_code]" required>
+                            <option value="WEB">WEB - Internet Initiated</option>
+                            <option value="CCD">CCD - Corporate Credit or Debit</option>
+                            <option value="PPD">PPD - Prearranged Payment and Deposit</option>
+                        </select>
+                        <div class="form-text">Type of ACH transaction for this batch.</div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">DFI Number</label>
+                    <input type="text" class="form-control" name="batches[0][dfi_number]" required>
+                    <div class="form-text">Your bank's routing number for this batch.</div>
+                </div>
+
+                <!-- Entries for this batch -->
+                <div class="entries-container">
+                    <div class="entry-item card mb-3">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5>Entry Information</h5>
+                            <button type="button" class="btn btn-danger btn-sm remove-entry" onclick="removeEntry(this)" style="display: none;">Remove Entry</button>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Transaction Code</label>
+                                    <select class="form-select" name="batches[0][entries][0][transaction_code]" required>
+                                        <option value="27">27 - Checking Account Debit</option>
+                                        <option value="22">22 - Checking Account Credit</option>
+                                        <option value="37">37 - Savings Account Debit</option>
+                                        <option value="32">32 - Savings Account Credit</option>
+                                    </select>
+                                    <div class="form-text">Type of transaction and account type (checking/savings, credit/debit).</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Amount</label>
+                                    <input type="number" class="form-control" name="batches[0][entries][0][amount]" step="0.01" required>
+                                    <div class="form-text">Transaction amount in dollars (e.g., 100.50 for $100.50).</div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Payor Routing Number</label>
+                                    <input type="text" class="form-control" name="batches[0][entries][0][payor_routing_number]" required pattern="\d{8,9}">
+                                    <div class="form-text">The payor's bank routing number (8-9 digits).</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Payor Account Number</label>
+                                    <input type="text" class="form-control" name="batches[0][entries][0][payor_account_number]" required>
+                                    <div class="form-text">The payor's bank account number.</div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Payor ID</label>
+                                    <input type="text" class="form-control" name="batches[0][entries][0][payor_id]" required>
+                                    <div class="form-text">Unique identifier for the payor (e.g., customer number, invoice number).</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Payor Name</label>
+                                    <input type="text" class="form-control" name="batches[0][entries][0][payor_name]" required>
+                                    <div class="form-text">Full legal name of the payor as it appears on their bank account.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-info" onclick="addEntry(this)">Add Another Entry</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-grid gap-2 mb-4">
+        <button type="button" class="btn btn-success" onclick="addBatch()">Add Another Batch</button>
+    </div>
+
+    <div class="d-grid gap-2">
+        <button type="submit" class="btn btn-primary btn-lg">Generate ACH File</button>
+    </div>
+</form>
+
+<script>
+let batchCount = 1;
+let entryCount = {};
+
+function addBatch() {
+    const batchesContainer = document.getElementById('batches-container');
+    const batchTemplate = batchesContainer.children[0].cloneNode(true);
+    
+    // Update batch index
+    const batchIndex = batchCount++;
+    updateNames(batchTemplate, batchIndex);
+    
+    // Show remove button for all but first batch
+    batchTemplate.querySelector('.remove-batch').style.display = 'block';
+    
+    // Reset entry count for this batch
+    entryCount[batchIndex] = 1;
+    
+    // Clear any values
+    clearValues(batchTemplate);
+    
+    batchesContainer.appendChild(batchTemplate);
+}
+
+function removeBatch(button) {
+    button.closest('.batch-entry').remove();
+}
+
+function addEntry(button) {
+    const entriesContainer = button.previousElementSibling;
+    const entryTemplate = entriesContainer.children[0].cloneNode(true);
+    const batchIndex = parseInt(button.closest('.batch-entry').querySelector('input[name*="batches"]').name.match(/batches\[(\d+)\]/)[1]);
+    
+    // Update entry index
+    const entryIndex = entryCount[batchIndex]++;
+    updateEntryNames(entryTemplate, batchIndex, entryIndex);
+    
+    // Show remove button for all but first entry
+    entryTemplate.querySelector('.remove-entry').style.display = 'block';
+    
+    // Clear any values
+    clearValues(entryTemplate);
+    
+    entriesContainer.appendChild(entryTemplate);
+}
+
+function removeEntry(button) {
+    button.closest('.entry-item').remove();
+}
+
+function updateNames(batchTemplate, batchIndex) {
+    batchTemplate.querySelectorAll('input, select').forEach(input => {
+        if (input.name) {
+            input.name = input.name.replace(/batches\[\d+\]/, `batches[${batchIndex}]`);
+        }
+    });
+}
+
+function updateEntryNames(entryTemplate, batchIndex, entryIndex) {
+    entryTemplate.querySelectorAll('input, select').forEach(input => {
+        if (input.name) {
+            input.name = input.name.replace(/batches\[\d+\]\[entries\]\[\d+\]/, `batches[${batchIndex}][entries][${entryIndex}]`);
+        }
+    });
+}
+
+function clearValues(element) {
+    element.querySelectorAll('input, select').forEach(input => {
+        if (input.type === 'text' || input.type === 'number') {
+            input.value = '';
+        } else if (input.type === 'select-one') {
+            input.selectedIndex = 0;
+        }
+    });
+}
+
+// Initialize entry count for first batch
+entryCount[0] = 1;
+
+// Form validation
+(function () {
+    'use strict'
+    var forms = document.querySelectorAll('.needs-validation')
+    Array.prototype.slice.call(forms)
+        .forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault()
+                    event.stopPropagation()
+                }
+                form.classList.add('was-validated')
+            }, false)
+        })
+})()
+</script>
+{% endblock %} 

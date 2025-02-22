@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Get Talky Command Center</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <style>
+    body {
+      background: #f5f6fa;
+      min-height: 100vh;
+      color: #333;
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
+    }
+    .banner {
+      @apply bg-purple-600 text-white p-4 rounded-t-lg shadow-md text-center font-bold text-xl;
+    }
+    .card {
+      @apply bg-white p-6 rounded-lg shadow-md border border-gray-200 transition-all duration-200 hover:shadow-lg;
+    }
+    .form-input {
+      @apply w-full p-3 bg-gray-100 rounded-lg text-gray-800 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200;
+    }
+    .form-label {
+      @apply block text-sm mb-2 font-medium text-gray-700;
+    }
+    .submit-button, .action-button {
+      @apply bg-purple-600 hover:bg-purple-700 text-white p-2 rounded-lg font-medium transition-all duration-300 transform hover:scale-105;
+    }
+    .remove-button {
+      @apply bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded font-medium transition-all duration-300 transform hover:scale-105;
+    }
+    .tab-button {
+      @apply px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-t-lg font-medium transition-all duration-200;
+    }
+    .tab-button.active {
+      @apply bg-purple-600 text-white shadow-md;
+    }
+    .tab-content {
+      @apply bg-white p-6 rounded-lg shadow-md border border-gray-200 transition-all duration-300;
+    }
+    .add-form {
+      @apply space-y-4 mt-4;
+    }
+    .table-container {
+      @apply overflow-x-auto mt-2;
+    }
+    .enum-table {
+      @apply table-auto w-full border border-gray-200 text-sm;
+    }
+    .enum-table thead {
+      @apply bg-purple-100;
+    }
+    .enum-table thead th {
+      @apply text-gray-700 font-medium py-2;
+    }
+    .enum-table th, .enum-table td {
+      @apply px-4 py-2 border-b border-gray-200 align-top;
+    }
+    .enum-table tbody tr:nth-child(even) {
+      @apply bg-gray-50;
+    }
+    .enum-table tbody tr:hover {
+      @apply bg-gray-100;
+    }
+    .enum-table td {
+      @apply text-gray-700 whitespace-normal;
+    }
+    .action-col {
+      @apply w-24 text-center;
+    }
+  </style>
+</head>
+
+<body class="p-6">
+  <!-- Notification Element -->
+  <div
+    id="notification"
+    class="hidden fixed top-6 right-6 p-4 rounded-lg bg-purple-600 text-white shadow-md transform transition-all duration-300"
+  ></div>
+
+  <header class="text-center mb-6">
+    <h1 class="text-3xl font-bold text-purple-600 inline-block p-4 rounded-lg">
+      Get Talky Command Center
+    </h1>
+  </header>
+
+  <!-- Tabs -->
+  <div class="tabs flex space-x-4 mb-4 justify-center">
+    <button class="tab-button active" data-tab="global-config">
+      Global Configuration
+    </button>
+    <button class="tab-button" data-tab="add-config">
+      Add Client Configuration
+    </button>
+    <!-- Removed the "Edit Client Configurations" tab -->
+  </div>
+
+  <!-- Tab Content: Global Configuration -->
+  <div id="global-config" class="tab-content">
+    <div class="banner">Global Configuration</div>
+    <div class="space-y-6">
+      <!-- Client Configurations Card -->
+      <div class="card">
+        <h3 class="text-lg font-medium mb-4 text-purple-600">
+          Client Configurations
+        </h3>
+        <div id="config-list" class="mb-4"></div>
+        <button id="add-config-btn" class="submit-button w-full mt-4">
+          Add New Configuration
+        </button>
+      </div>
+
+      <!-- Enum Tables Section -->
+      <div class="card">
+        <h3 class="text-lg font-medium mb-4 text-purple-600">Enum Tables</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <!-- Client Types Card -->
+          <div class="card">
+            <h4 class="text-lg font-semibold text-purple-600 mb-2 border-b pb-2">
+              Client Types
+            </h4>
+            <div id="client-type-list"></div>
+            <button
+              id="toggle-client-type-form"
+              class="mt-4 bg-gray-200 px-3 py-1 rounded text-sm text-gray-700 hover:bg-gray-300"
+            >
+              Add New
+            </button>
+            <div id="client-type-form-container" class="hidden">
+              <form id="add-client-type-form" class="add-form">
+                <div>
+                  <label for="client-type-name" class="form-label">Name</label>
+                  <input
+                    type="text"
+                    id="client-type-name"
+                    placeholder="Name"
+                    class="form-input"
+                    required
+                  />
+                </div>
+                <div>
+                  <label for="client-type-desc" class="form-label">
+                    Description
+                  </label>
+                  <input
+                    type="text"
+                    id="client-type-desc"
+                    placeholder="Description"
+                    class="form-input"
+                  />
+                </div>
+                <button type="submit" class="submit-button">
+                  Add Client Type
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <!-- User Roles Card -->
+          <div class="card">
+            <h4 class="text-lg font-semibold text-purple-600 mb-2 border-b pb-2">
+              User Roles
+            </h4>
+            <div id="user-role-list"></div>
+            <button
+              id="toggle-user-role-form"
+              class="mt-4 bg-gray-200 px-3 py-1 rounded text-sm text-gray-700 hover:bg-gray-300"
+            >
+              Add New
+            </button>
+            <div id="user-role-form-container" class="hidden">
+              <form id="add-user-role-form" class="add-form">
+                <div>
+                  <label for="user-role-name" class="form-label">Name</label>
+                  <input
+                    type="text"
+                    id="user-role-name"
+                    placeholder="Name"
+                    class="form-input"
+                    required
+                  />
+                </div>
+                <div>
+                  <label for="user-role-desc" class="form-label">
+                    Description
+                  </label>
+                  <input
+                    type="text"
+                    id="user-role-desc"
+                    placeholder="Description"
+                    class="form-input"
+                  />
+                </div>
+                <button type="submit" class="submit-button">
+                  Add User Role
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Interactor Roles Card -->
+          <div class="card">
+            <h4 class="text-lg font-semibold text-purple-600 mb-2 border-b pb-2">
+              Interactor Roles
+            </h4>
+            <div id="interactor-role-list"></div>
+            <button
+              id="toggle-interactor-role-form"
+              class="mt-4 bg-gray-200 px-3 py-1 rounded text-sm text-gray-700 hover:bg-gray-300"
+            >
+              Add New
+            </button>
+            <div id="interactor-role-form-container" class="hidden">
+              <form id="add-interactor-role-form" class="add-form">
+                <div>
+                  <label for="interactor-role-name" class="form-label">Name</label>
+                  <input
+                    type="text"
+                    id="interactor-role-name"
+                    placeholder="Name"
+                    class="form-input"
+                    required
+                  />
+                </div>
+                <div>
+                  <label for="interactor-role-desc" class="form-label">
+                    Description
+                  </label>
+                  <input
+                    type="text"
+                    id="interactor-role-desc"
+                    placeholder="Description"
+                    class="form-input"
+                  />
+                </div>
+                <button type="submit" class="submit-button">
+                  Add Interactor Role
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Pet Types Card -->
+          <div class="card">
+            <h4 class="text-lg font-semibold text-purple-600 mb-2 border-b pb-2">
+              Pet Types
+            </h4>
+            <div id="pet-type-list"></div>
+            <button
+              id="toggle-pet-type-form"
+              class="mt-4 bg-gray-200 px-3 py-1 rounded text-sm text-gray-700 hover:bg-gray-300"
+            >
+              Add New
+            </button>
+            <div id="pet-type-form-container" class="hidden">
+              <form id="add-pet-type-form" class="add-form">
+                <div>
+                  <label for="pet-type-name" class="form-label">Name</label>
+                  <input
+                    type="text"
+                    id="pet-type-name"
+                    placeholder="Name"
+                    class="form-input"
+                    required
+                  />
+                </div>
+                <div>
+                  <label for="pet-type-desc" class="form-label">
+                    Description
+                  </label>
+                  <input
+                    type="text"
+                    id="pet-type-desc"
+                    placeholder="Description"
+                    class="form-input"
+                  />
+                </div>
+                <button type="submit" class="submit-button">
+                  Add Pet Type
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Sex Card -->
+          <div class="card">
+            <h4 class="text-lg font-semibold text-purple-600 mb-2 border-b pb-2">
+              Sex
+            </h4>
+            <div id="sex-list"></div>
+            <button
+              id="toggle-sex-form"
+              class="mt-4 bg-gray-200 px-3 py-1 rounded text-sm text-gray-700 hover:bg-gray-300"
+            >
+              Add New
+            </button>
+            <div id="sex-form-container" class="hidden">
+              <form id="add-sex-form" class="add-form">
+                <div>
+                  <label for="sex-name" class="form-label">Name</label>
+                  <input
+                    type="text"
+                    id="sex-name"
+                    placeholder="Name"
+                    class="form-input"
+                    required
+                  />
+                </div>
+                <div>
+                  <label for="sex-desc" class="form-label">Description</label>
+                  <input
+                    type="text"
+                    id="sex-desc"
+                    placeholder="Description"
+                    class="form-input"
+                  />
+                </div>
+                <button type="submit" class="submit-button">Add Sex</button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Interaction Categories Card -->
+          <div class="card">
+            <h4 class="text-lg font-semibold text-purple-600 mb-2 border-b pb-2">
+              Interaction Categories
+            </h4>
+            <div id="interaction-category-list"></div>
+            <button
+              id="toggle-interaction-category-form"
+              class="mt-4 bg-gray-200 px-3 py-1 rounded text-sm text-gray-700 hover:bg-gray-300"
+            >
+              Add New
+            </button>
+            <div id="interaction-category-form-container" class="hidden">
+              <form id="add-interaction-category-form" class="add-form">
+                <div>
+                  <label for="interaction-category-name" class="form-label">
+                    Name
+                  </label>
+                  <input
+                    type="text"
+                    id="interaction-category-name"
+                    placeholder="Name"
+                    class="form-input"
+                    required
+                  />
+                </div>
+                <div>
+                  <label for="interaction-category-desc" class="form-label">
+                    Description
+                  </label>
+                  <input
+                    type="text"
+                    id="interaction-category-desc"
+                    placeholder="Description"
+                    class="form-input"
+                  />
+                </div>
+                <button type="submit" class="submit-button">
+                  Add Interaction Category
+                </button>
+              </form>
+            </div>
+          </div>
+
+        </div> <!-- end grid -->
+      </div> <!-- end card for Enum Tables -->
+    </div>
+  </div>
+
+  <!-- Tab Content: Add Client Configuration -->
+  <div id="add-config" class="tab-content hidden">
+    <div class="banner">Add Client Configuration</div>
+    <div class="space-y-6">
+      <!-- Configuration Details -->
+      <div class="card">
+        <h3 class="text-lg font-medium mb-4 text-purple-600">
+          Configuration Details
+        </h3>
+        <form id="config-form" class="space-y-6">
+          <div>
+            <label class="form-label">Client Name</label>
+            <input
+              type="text"
+              id="config-name"
+              class="form-input"
+              required
+              placeholder="Enter Client Name"
+            />
+          </div>
+          <div>
+            <label class="form-label">Client Type</label>
+            <select id="client-type" class="form-input" required>
+              <!-- Populated dynamically -->
+            </select>
+          </div>
+          <div>
+            <label class="form-label">ElevenLabs Model</label>
+            <input
+              type="text"
+              id="elevenlabs-model"
+              class="form-input"
+              placeholder="Enter Model"
+            />
+          </div>
+          <div>
+            <label class="form-label">ElevenLabs Voice ID</label>
+            <input
+              type="text"
+              id="elevenlabs-voice"
+              class="form-input"
+              placeholder="Enter Voice ID"
+            />
+          </div>
+          <div>
+            <label class="form-label">Client Internal ID</label>
+            <input
+              type="text"
+              id="client-internal-id"
+              class="form-input"
+              placeholder="Enter Internal ID"
+            />
+          </div>
+          <div>
+            <label class="form-label">About Us</label>
+            <textarea
+              id="about-us"
+              class="form-input"
+              rows="3"
+              placeholder="Enter About Us"
+            ></textarea>
+          </div>
+          <div>
+            <label class="form-label">Services</label>
+            <textarea
+              id="services"
+              class="form-input"
+              rows="3"
+              placeholder="Enter Services"
+            ></textarea>
+          </div>
+          <div>
+            <label class="form-label">Locations</label>
+            <textarea
+              id="locations"
+              class="form-input"
+              rows="3"
+              placeholder="Enter Locations"
+            ></textarea>
+          </div>
+          <button type="submit" class="submit-button">
+            Save Configuration
+          </button>
+        </form>
+      </div>
+
+      <!-- Related Entities (Providers, Requests, Locations, Users) -->
+      <div id="related-entities" class="hidden space-y-6">
+        <!-- Providers -->
+        <div class="card">
+          <h3 class="text-lg font-medium mb-4 text-purple-600">Providers</h3>
+          <div id="provider-list" class="mb-4"></div>
+          <form id="provider-form" class="add-form">
+            <input type="hidden" id="provider-config-id" />
+            <input
+              type="text"
+              id="provider-first"
+              placeholder="First Name"
+              class="form-input"
+              required
+            />
+            <input
+              type="text"
+              id="provider-last"
+              placeholder="Last Name"
+              class="form-input"
+              required
+            />
+            <input
+              type="tel"
+              id="provider-phone"
+              placeholder="Phone Number"
+              class="form-input"
+            />
+            <input
+              type="email"
+              id="provider-email"
+              placeholder="Email"
+              class="form-input"
+            />
+            <button type="submit" class="submit-button">Add Provider</button>
+          </form>
+        </div>
+        <!-- Request Types -->
+        <div class="card">
+          <h3 class="text-lg font-medium mb-4 text-purple-600">
+            Request Types
+          </h3>
+          <div id="request-list" class="mb-4"></div>
+          <form id="request-form" class="add-form">
+            <input type="hidden" id="request-config-id" />
+            <input
+              type="text"
+              id="request-name"
+              placeholder="Name"
+              class="form-input"
+              required
+            />
+            <input
+              type="text"
+              id="request-desc"
+              placeholder="Description"
+              class="form-input"
+            />
+            <input
+              type="number"
+              id="request-length"
+              placeholder="Length (minutes)"
+              class="form-input"
+            />
+            <button type="submit" class="submit-button">
+              Add Request Type
+            </button>
+          </form>
+        </div>
+        <!-- Locations -->
+        <div class="card">
+          <h3 class="text-lg font-medium mb-4 text-purple-600">Locations</h3>
+          <div id="location-list" class="mb-4"></div>
+          <form id="location-form" class="add-form">
+            <input type="hidden" id="location-config-id" />
+            <input
+              type="text"
+              id="location-name"
+              placeholder="Name"
+              class="form-input"
+              required
+            />
+            <input
+              type="tel"
+              id="location-phone"
+              placeholder="Phone Number"
+              class="form-input"
+            />
+            <input
+              type="text"
+              id="location-hours"
+              placeholder="Operating Hours"
+              class="form-input"
+            />
+            <button type="submit" class="submit-button">
+              Add Location
+            </button>
+          </form>
+        </div>
+        <!-- Users -->
+        <div class="card">
+          <h3 class="text-lg font-medium mb-4 text-purple-600">Users</h3>
+          <div id="user-list" class="mb-4"></div>
+          <form id="user-form" class="add-form">
+            <input type="hidden" id="user-config-id" />
+            <input
+              type="text"
+              id="user-first"
+              placeholder="First Name"
+              class="form-input"
+              required
+            />
+            <input
+              type="text"
+              id="user-last"
+              placeholder="Last Name"
+              class="form-input"
+              required
+            />
+            <input
+              type="tel"
+              id="user-phone"
+              placeholder="Phone Number"
+              class="form-input"
+            />
+            <input
+              type="email"
+              id="user-email"
+              placeholder="Email"
+              class="form-input"
+            />
+            <select id="user-role" class="form-input" required>
+              <!-- Populated dynamically -->
+            </select>
+            <button type="submit" class="submit-button">Add User</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Removed the entire "Edit Client Configurations" tab -->
+
+  <!-- Link to your main.js -->
+  <script src="static/js/main.js" defer></script>
+</body>
+</html>

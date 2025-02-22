@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Edit Client Configuration</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    body {
+      background: #f5f6fa;
+      min-height: 100vh;
+      color: #333;
+      font-family: 'Inter', sans-serif;
+    }
+    .card {
+      @apply bg-white p-8 rounded-xl shadow-md border border-gray-200;
+    }
+    .form-input {
+      @apply w-full p-3 bg-gray-50 rounded-lg text-gray-800 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200;
+    }
+    .form-label {
+      @apply block text-sm font-medium text-gray-700 mb-2;
+    }
+    .section-title {
+      @apply text-xl font-semibold text-purple-600 mb-6 pb-2 border-b border-purple-200;
+    }
+    .input-group {
+      @apply mb-6 last:mb-0;
+    }
+  </style>
+</head>
+<body class="p-6 bg-gray-50">
+  <!-- Notification Element -->
+  <div
+    id="notification"
+    class="hidden fixed top-6 right-6 p-4 rounded-lg bg-purple-600 text-white shadow-md transform transition-all duration-300"
+  ></div>
+
+  <div class="max-w-4xl mx-auto">
+    <header class="mb-8">
+      <div class="flex items-center justify-between">
+        <button
+          onclick="window.location.href='/'"
+          class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg flex items-center transition-colors duration-200"
+        >
+          ← Back
+        </button>
+        <h1 class="text-3xl font-bold text-purple-600">
+          Edit Client Configuration
+        </h1>
+        <div class="w-24"></div>
+      </div>
+    </header>
+
+    <div class="card">
+      <h2 class="section-title">Configuration Details</h2>
+      <form id="edit-config-form" class="space-y-6">
+        <input type="hidden" id="edit-config-id" />
+
+        <div class="input-group">
+          <label class="form-label" for="edit-config-name">Client Name</label>
+          <input
+            type="text"
+            id="edit-config-name"
+            class="form-input"
+            required
+            placeholder="Enter Client Name"
+          />
+        </div>
+
+        <div class="input-group">
+          <label class="form-label" for="edit-client-type">Client Type</label>
+          <select id="edit-client-type" class="form-input" required>
+            <!-- Populated dynamically -->
+          </select>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="input-group">
+            <label class="form-label" for="edit-elevenlabs-model">ElevenLabs Model</label>
+            <input
+              type="text"
+              id="edit-elevenlabs-model"
+              class="form-input"
+              placeholder="Enter Model"
+            />
+          </div>
+
+          <div class="input-group">
+            <label class="form-label" for="edit-elevenlabs-voice">ElevenLabs Voice ID</label>
+            <input
+              type="text"
+              id="edit-elevenlabs-voice"
+              class="form-input"
+              placeholder="Enter Voice ID"
+            />
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label class="form-label" for="edit-client-internal-id">Client Internal ID</label>
+          <input
+            type="text"
+            id="edit-client-internal-id"
+            class="form-input"
+            placeholder="Enter Internal ID"
+          />
+        </div>
+
+        <div class="input-group">
+          <label class="form-label" for="edit-about-us">About Us</label>
+          <textarea
+            id="edit-about-us"
+            class="form-input"
+            rows="4"
+            placeholder="Enter About Us"
+          ></textarea>
+        </div>
+
+        <div class="input-group">
+          <label class="form-label" for="edit-services">Services</label>
+          <textarea
+            id="edit-services"
+            class="form-input"
+            rows="4"
+            placeholder="Enter Services"
+          ></textarea>
+        </div>
+
+        <div class="input-group">
+          <label class="form-label" for="edit-locations">Locations</label>
+          <textarea
+            id="edit-locations"
+            class="form-input"
+            rows="4"
+            placeholder="Enter Locations"
+          ></textarea>
+        </div>
+
+        <div class="pt-6 border-t border-gray-200">
+          <button 
+            type="submit" 
+            class="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 px-6 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+            </svg>
+            <span>Update Configuration</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Load your main.js -->
+  <script src="static/js/main.js"></script>
+  <script>
+    // Your existing initialization code...
+    document.addEventListener('DOMContentLoaded', async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const configId = urlParams.get('id');
+      if (!configId) {
+        showNotification('No configuration ID specified.', true);
+        return;
+      }
+
+      try {
+        const clientTypes = await apiCall('/client-type/');
+        const dropdown = document.getElementById('edit-client-type');
+        dropdown.innerHTML = clientTypes
+          .map((t) => `<option value="${t.id}">${t.name}</option>`)
+          .join('');
+
+        const config = await apiCall(`/configurations/${configId}`);
+
+        document.getElementById('edit-config-id').value = config.id;
+        document.getElementById('edit-config-name').value = config.name || '';
+        document.getElementById('edit-client-type').value = config.client_type_id || '';
+        document.getElementById('edit-elevenlabs-model').value = config.elevenlabs_model || '';
+        document.getElementById('edit-elevenlabs-voice').value = config.elevenlabs_voice_id || '';
+        document.getElementById('edit-client-internal-id').value = config.client_internal_id || '';
+        document.getElementById('edit-about-us').value = config.about_us || '';
+        document.getElementById('edit-services').value = config.services || '';
+        document.getElementById('edit-locations').value = config.locations || '';
+
+      } catch (err) {
+        showNotification('Failed to load configuration: ' + err.message, true);
+      }
+
+      document
+        .getElementById('edit-config-form')
+        .addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const formData = {
+            name: document.getElementById('edit-config-name').value,
+            client_type_id: parseInt(document.getElementById('edit-client-type').value),
+            elevenlabs_model: document.getElementById('edit-elevenlabs-model').value || undefined,
+            elevenlabs_voice_id: document.getElementById('edit-elevenlabs-voice').value || undefined,
+            client_internal_id: document.getElementById('edit-client-internal-id').value || undefined,
+            about_us: document.getElementById('edit-about-us').value || undefined,
+            services: document.getElementById('edit-services').value || undefined,
+            locations: document.getElementById('edit-locations').value || undefined,
+          };
+
+          try {
+            await apiCall(`/configurations/${configId}`, 'PUT', formData);
+            showNotification('Configuration updated successfully!');
+          } catch (error) {
+            showNotification('Failed to update configuration: ' + error.message, true);
+          }
+        });
+    });
+  </script>
+</body>
+</html>
