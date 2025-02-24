@@ -60,6 +60,15 @@ class InteractionCategory(Base):
     description = Column(String(255))
     active = Column(Boolean, default=True)
 
+class ProviderType(Base):
+    __tablename__ = "provider_type"
+    __table_args__ = {'schema': 'get_talky_enum'}
+    
+    id = Column(Integer, primary_key=True)
+    name = Column(String(255), nullable=False)
+    description = Column(String(255))
+    active = Column(Boolean, default=True)
+
 # Main Tables
 class Configuration(Base):
     __tablename__ = "configuration"
@@ -91,6 +100,7 @@ class Provider(Base):
     
     id = Column(Integer, primary_key=True)
     configuration_id = Column(Integer, ForeignKey("configuration.id"))
+    provider_type_id = Column(Integer, ForeignKey("get_talky_enum.provider_type.id"))
     first_name = Column(String(255))
     last_name = Column(String(255))
     phone_number = Column(String(255))

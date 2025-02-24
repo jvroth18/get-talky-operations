@@ -337,6 +337,11 @@ document.addEventListener('DOMContentLoaded', () => {
       loadConfigurableItems('/user-role/', 'user-role-list')
     )
   );
+  loadConfigurableItems('/provider-type/', 'provider-type-list', (id) =>
+    removeItem('/provider-type/', id, 'provider-type-list', () =>
+      loadConfigurableItems('/provider-type/', 'provider-type-list')
+    )
+  );
   loadConfigurableItems('/interactor-role/', 'interactor-role-list', (id) =>
     removeItem('/interactor-role/', id, 'interactor-role-list', () =>
       loadConfigurableItems('/interactor-role/', 'interactor-role-list')
@@ -447,6 +452,21 @@ document.addEventListener('DOMContentLoaded', () => {
           ),
         () =>
           loadConfigurableItems('/interaction-category/', 'interaction-category-list')
+      )
+    );
+
+  document
+    .getElementById('add-provider-type-form')
+    .addEventListener('submit', (e) =>
+      handleAddConfigurableItem(
+        e,
+        '/provider-type/',
+        'provider-type-list',
+        (id) =>
+          removeItem('/provider-type/', id, 'provider-type-list', () =>
+            loadConfigurableItems('/provider-type/', 'provider-type-list')
+          ),
+        () => loadConfigurableItems('/provider-type/', 'provider-type-list')
       )
     );
 

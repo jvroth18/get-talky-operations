@@ -249,6 +249,7 @@
             <thead>
               <tr>
                 <th>Name</th>
+                <th>Provider Type</th>
                 <th>Phone</th>
                 <th>Email</th>
                 <th>Actions</th>
@@ -406,6 +407,12 @@
         <div>
           <label class="form-label">Last Name</label>
           <input type="text" name="last_name" class="form-input" required>
+        </div>
+        <div>
+          <label class="form-label">Provider Type</label>
+          <select name="provider_type_id" class="form-input" required>
+            <!-- Populated dynamically -->
+          </select>
         </div>
         <div>
           <label class="form-label">Phone</label>
@@ -675,6 +682,14 @@
           ${clientTypes.map(type => `<option value="${type.id}">${type.name}</option>`).join('')}
         `;
 
+        // Load provider types for provider modal
+        const providerTypes = await apiCall('/provider-type/');
+        const providerTypeSelect = document.querySelector('#provider-modal select[name="provider_type_id"]');
+        providerTypeSelect.innerHTML = `
+          <option value="">Select a provider type</option>
+          ${providerTypes.map(type => `<option value="${type.id}">${type.name}</option>`).join('')}
+        `;
+
         // Load configuration data
         const config = await apiCall(`/configurations/${configId}`);
         console.log('Loaded configuration:', config);
@@ -782,6 +797,7 @@
         tbody.innerHTML = providers.map(provider => `
           <tr class="hover:bg-gray-50">
             <td class="px-6 py-4">${provider.first_name} ${provider.last_name}</td>
+            <td class="px-6 py-4">${provider.provider_type?.name || '-'}</td>
             <td class="px-6 py-4">${provider.phone_number || '-'}</td>
             <td class="px-6 py-4">${provider.email || '-'}</td>
             <td class="px-6 py-4">
