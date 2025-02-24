@@ -34,7 +34,7 @@
       @apply block text-sm mb-2 font-medium text-gray-700;
     }
     .submit-button, .action-button {
-      @apply bg-purple-600 hover:bg-purple-700 text-white p-2 rounded-lg font-medium transition-all duration-300 transform hover:scale-105;
+      @apply bg-purple-600 hover:bg-purple-700 text-white p-2 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 w-full mt-4;
     }
     .remove-button {
       @apply bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded font-medium transition-all duration-300 transform hover:scale-105;
@@ -49,7 +49,7 @@
       @apply bg-white p-6 rounded-lg shadow-md border border-gray-200 transition-all duration-300;
     }
     .add-form {
-      @apply space-y-4 mt-4;
+      @apply space-y-4 mt-4 bg-gray-50 p-4 rounded-lg border border-gray-200;
     }
     .table-container {
       @apply overflow-x-auto mt-2;
@@ -77,6 +77,9 @@
     }
     .action-col {
       @apply w-24 text-center;
+    }
+    .grid-card {
+      @apply bg-white p-6 rounded-lg shadow-md border border-gray-200 transition-all duration-200 hover:shadow-lg;
     }
   </style>
 </head>
@@ -208,6 +211,48 @@
             </div>
           </div>
 
+          <!-- Provider Types Card -->
+          <div class="card">
+            <h4 class="text-lg font-semibold text-purple-600 mb-2 border-b pb-2">
+              Provider Types
+            </h4>
+            <div id="provider-type-list"></div>
+            <button
+              id="toggle-provider-type-form"
+              class="mt-4 bg-gray-200 px-3 py-1 rounded text-sm text-gray-700 hover:bg-gray-300"
+            >
+              Add New
+            </button>
+            <div id="provider-type-form-container" class="hidden">
+              <form id="add-provider-type-form" class="add-form">
+                <div>
+                  <label for="provider-type-name" class="form-label">Name</label>
+                  <input
+                    type="text"
+                    id="provider-type-name"
+                    placeholder="Name"
+                    class="form-input"
+                    required
+                  />
+                </div>
+                <div>
+                  <label for="provider-type-desc" class="form-label">
+                    Description
+                  </label>
+                  <input
+                    type="text"
+                    id="provider-type-desc"
+                    placeholder="Description"
+                    class="form-input"
+                  />
+                </div>
+                <button type="submit" class="submit-button">
+                  Add Provider Type
+                </button>
+              </form>
+            </div>
+          </div>
+
           <!-- Interactor Roles Card -->
           <div class="card">
             <h4 class="text-lg font-semibold text-purple-600 mb-2 border-b pb-2">
@@ -326,44 +371,6 @@
                   />
                 </div>
                 <button type="submit" class="submit-button">Add Sex</button>
-              </form>
-            </div>
-          </div>
-
-          <!-- Provider Types Card -->
-          <div class="card">
-            <h4 class="text-lg font-semibold text-purple-600 mb-2 border-b pb-2">
-              Provider Types
-            </h4>
-            <div id="provider-type-list"></div>
-            <button
-              id="toggle-provider-type-form"
-              class="mt-4 bg-gray-200 px-3 py-1 rounded text-sm text-gray-700 hover:bg-gray-300"
-            >
-              Add New
-            </button>
-            <div id="provider-type-form-container" class="hidden">
-              <form id="add-provider-type-form" class="add-form">
-                <div>
-                  <label for="provider-type-name" class="form-label">Name</label>
-                  <input
-                    type="text"
-                    id="provider-type-name"
-                    placeholder="Name"
-                    class="form-input"
-                    required
-                  />
-                </div>
-                <div>
-                  <label for="provider-type-desc" class="form-label">Description</label>
-                  <input
-                    type="text"
-                    id="provider-type-desc"
-                    placeholder="Description"
-                    class="form-input"
-                  />
-                </div>
-                <button type="submit" class="submit-button">Add Provider Type</button>
               </form>
             </div>
           </div>

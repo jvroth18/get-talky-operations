@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from models import Base, Configuration, ClientType, Provider, RequestType, ClientApiKey, User, Location, UserRole, InteractorRole, PetType, Sex, InteractionCategory
+from models import Base, Configuration, ClientType, Provider, RequestType, ClientApiKey, User, Location, UserRole, InteractorRole, PetType, Sex, InteractionCategory, ProviderType
 from pydantic import BaseModel
 from typing import List, Optional
 from uuid import UUID
@@ -93,6 +93,7 @@ class ProviderCreate(BaseModel):
     last_name: str
     phone_number: Optional[str] = None
     email: Optional[str] = None
+    provider_type_id: int
 
 class RequestTypeCreate(BaseModel):
     configuration_id: int
@@ -256,6 +257,28 @@ def delete_interaction_category(interaction_category_id: int, db: Session = Depe
     db.delete(db_interaction_category)
     db.commit()
     return {"message": "Interaction category deleted successfully"}
+
+# Provider Type endpoints
+@app.post("/provider-type/", response_model=EnumCreate)
+def create_provider_type(provider_type: EnumCreate, db: Session = Depends(get_db)):
+    db_provider_type = ProviderType(**provider_type.dict())
+    db.add(db_provider_type)
+    db.commit()
+    db.refresh(db_provider_type)
+    return provider_type
+
+@app.get("/provider-type/")
+def get_provider_types(db: Session = Depends(get_db)):
+    return db.query(ProviderType).all()
+
+@app.delete("/provider-type/{provider_type_id}")
+def delete_provider_type(provider_type_id: int, db: Session = Depends(get_db)):
+    db_provider_type = db.query(ProviderType).filter(ProviderType.id == provider_type_id).first()
+    if not db_provider_type:
+        raise HTTPException(status_code=404, detail="Provider type not found")
+    db.delete(db_provider_type)
+    db.commit()
+    return {"message": "Provider type deleted successfully"}
 
 # CRUD Endpoints
 @app.post("/configurations/", response_model=ConfigurationCreate)

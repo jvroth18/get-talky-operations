@@ -58,6 +58,7 @@ function buildEnumTable(items, removeCallback) {
         <button
           class="remove-button"
           data-id="${item.id}"
+          type="button"
         >
           Remove
         </button>
@@ -65,7 +66,11 @@ function buildEnumTable(items, removeCallback) {
     `;
     // Attach the remove callback
     const removeBtn = row.querySelector('.remove-button');
-    removeBtn.addEventListener('click', () => removeCallback(item.id));
+    removeBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      console.log('Remove button clicked for ID:', item.id);
+      removeCallback(item.id);
+    });
     tbody.appendChild(row);
   });
 
@@ -96,7 +101,20 @@ async function loadConfigurableItems(endpoint, listId, removeCallback) {
 // Remove Item
 async function removeItem(endpoint, id, listId, loadFunction) {
   try {
-    await apiCall(`${endpoint}/${id}`, 'DELETE');
+    console.log(`Removing item with ID ${id} from ${endpoint}`);
+    // Ensure proper URL construction with slash
+    const url = `${API_BASE_URL}${endpoint}${endpoint.endsWith('/') ? '' : '/'}${id}`;
+    console.log('Delete URL:', url);
+    
+    const response = await fetch(url, { 
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
     showNotification('Item removed successfully!');
     loadFunction();
     // Refresh client type dropdown if we're dealing with client types
@@ -104,6 +122,7 @@ async function removeItem(endpoint, id, listId, loadFunction) {
       populateClientTypeDropdown();
     }
   } catch (error) {
+    console.error('Error removing item:', error);
     showNotification('Failed to remove item: ' + error.message, true);
   }
 }
@@ -258,13 +277,8 @@ function initializeTabs() {
   });
 }
 
-/**
- * Toggles for each enum's "Add New" form.
- * If you don't want the forms at all, remove these sections
- * or comment them out in index.html.
- */
+// Initialize form toggles
 function initializeFormToggles() {
-  // Array of { toggleBtnId, formContainerId }
   const toggles = [
     {
       toggleBtnId: 'toggle-client-type-form',
@@ -273,6 +287,10 @@ function initializeFormToggles() {
     {
       toggleBtnId: 'toggle-user-role-form',
       formContainerId: 'user-role-form-container',
+    },
+    {
+      toggleBtnId: 'toggle-provider-type-form',
+      formContainerId: 'provider-type-form-container',
     },
     {
       toggleBtnId: 'toggle-interactor-role-form',
@@ -289,7 +307,7 @@ function initializeFormToggles() {
     {
       toggleBtnId: 'toggle-interaction-category-form',
       formContainerId: 'interaction-category-form-container',
-    },
+    }
   ];
 
   toggles.forEach(({ toggleBtnId, formContainerId }) => {
@@ -321,6 +339,7 @@ async function populateClientTypeDropdown() {
 
 // Initialize everything once the DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
+  console.log('DOM Content Loaded');
   initializeTabs();
   initializeFormToggles();
   loadConfigurations();
@@ -366,7 +385,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Handle form submissions for Configurable Items
   document
     .getElementById('add-client-type-form')
-    .addEventListener('submit', (e) =>
+    ?.addEventListener('submit', (e) =>
       handleAddConfigurableItem(
         e,
         '/client-type/',
@@ -381,7 +400,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document
     .getElementById('add-user-role-form')
-    .addEventListener('submit', (e) =>
+    ?.addEventListener('submit', (e) =>
       handleAddConfigurableItem(
         e,
         '/user-role/',
@@ -395,8 +414,23 @@ document.addEventListener('DOMContentLoaded', () => {
     );
 
   document
+    .getElementById('add-provider-type-form')
+    ?.addEventListener('submit', (e) =>
+      handleAddConfigurableItem(
+        e,
+        '/provider-type/',
+        'provider-type-list',
+        (id) =>
+          removeItem('/provider-type/', id, 'provider-type-list', () =>
+            loadConfigurableItems('/provider-type/', 'provider-type-list')
+          ),
+        () => loadConfigurableItems('/provider-type/', 'provider-type-list')
+      )
+    );
+
+  document
     .getElementById('add-interactor-role-form')
-    .addEventListener('submit', (e) =>
+    ?.addEventListener('submit', (e) =>
       handleAddConfigurableItem(
         e,
         '/interactor-role/',
@@ -411,7 +445,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document
     .getElementById('add-pet-type-form')
-    .addEventListener('submit', (e) =>
+    ?.addEventListener('submit', (e) =>
       handleAddConfigurableItem(
         e,
         '/pet-type/',
@@ -426,7 +460,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document
     .getElementById('add-sex-form')
-    .addEventListener('submit', (e) =>
+    ?.addEventListener('submit', (e) =>
       handleAddConfigurableItem(
         e,
         '/sex/',
@@ -441,7 +475,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document
     .getElementById('add-interaction-category-form')
-    .addEventListener('submit', (e) =>
+    ?.addEventListener('submit', (e) =>
       handleAddConfigurableItem(
         e,
         '/interaction-category/',
@@ -450,23 +484,7 @@ document.addEventListener('DOMContentLoaded', () => {
           removeItem('/interaction-category/', id, 'interaction-category-list', () =>
             loadConfigurableItems('/interaction-category/', 'interaction-category-list')
           ),
-        () =>
-          loadConfigurableItems('/interaction-category/', 'interaction-category-list')
-      )
-    );
-
-  document
-    .getElementById('add-provider-type-form')
-    .addEventListener('submit', (e) =>
-      handleAddConfigurableItem(
-        e,
-        '/provider-type/',
-        'provider-type-list',
-        (id) =>
-          removeItem('/provider-type/', id, 'provider-type-list', () =>
-            loadConfigurableItems('/provider-type/', 'provider-type-list')
-          ),
-        () => loadConfigurableItems('/provider-type/', 'provider-type-list')
+        () => loadConfigurableItems('/interaction-category/', 'interaction-category-list')
       )
     );
 

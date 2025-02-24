@@ -606,12 +606,21 @@
     // Add Entity Functions
     async function addProvider(data) {
       try {
-        const response = await apiCall('/providers/', 'POST', { ...data, configuration_id: configId });
+        console.log('Adding provider with data:', data);
+        const response = await apiCall('/providers/', 'POST', {
+          configuration_id: configId,
+          first_name: data.first_name,
+          last_name: data.last_name,
+          phone_number: data.phone_number || undefined,
+          email: data.email || undefined,
+          provider_type_id: parseInt(data.provider_type_id) || undefined
+        });
         localData.providers.push(response);
         await loadProviders(configId);
         hideModal('provider-modal');
         showNotification('Provider added successfully!');
       } catch (error) {
+        console.error('Failed to add provider:', error);
         showNotification('Failed to add provider: ' + error.message, true);
       }
     }
@@ -682,14 +691,6 @@
           ${clientTypes.map(type => `<option value="${type.id}">${type.name}</option>`).join('')}
         `;
 
-        // Load provider types for provider modal
-        const providerTypes = await apiCall('/provider-type/');
-        const providerTypeSelect = document.querySelector('#provider-modal select[name="provider_type_id"]');
-        providerTypeSelect.innerHTML = `
-          <option value="">Select a provider type</option>
-          ${providerTypes.map(type => `<option value="${type.id}">${type.name}</option>`).join('')}
-        `;
-
         // Load configuration data
         const config = await apiCall(`/configurations/${configId}`);
         console.log('Loaded configuration:', config);
@@ -739,14 +740,17 @@
         });
 
       } catch (err) {
-        showNotification('Failed to load configuration: ' + err.message, true);
+        console.error('Initialization error:', err);
+        showNotification('Failed to initialize: ' + err.message, true);
       }
 
       // Add form submission handlers
       document.getElementById('add-provider-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const formData = new FormData(e.target);
-        await addProvider(Object.fromEntries(formData));
+        const data = Object.fromEntries(formData);
+        console.log('Provider form data:', data);
+        await addProvider(data);
       });
 
       document.getElementById('add-request-type-form').addEventListener('submit', async (e) => {
@@ -793,11 +797,17 @@
         const providers = await response.json();
         localData.providers = providers;
         
+        // Get provider types for mapping
+        const providerTypesResponse = await fetch('/provider-type/');
+        if (!providerTypesResponse.ok) throw new Error('Failed to fetch provider types');
+        const providerTypes = await providerTypesResponse.json();
+        const providerTypeMap = Object.fromEntries(providerTypes.map(type => [type.id, type.name]));
+        
         const tbody = document.getElementById('providers-list');
         tbody.innerHTML = providers.map(provider => `
           <tr class="hover:bg-gray-50">
             <td class="px-6 py-4">${provider.first_name} ${provider.last_name}</td>
-            <td class="px-6 py-4">${provider.provider_type?.name || '-'}</td>
+            <td class="px-6 py-4">${provider.provider_type_id ? providerTypeMap[provider.provider_type_id] : '-'}</td>
             <td class="px-6 py-4">${provider.phone_number || '-'}</td>
             <td class="px-6 py-4">${provider.email || '-'}</td>
             <td class="px-6 py-4">
@@ -809,6 +819,7 @@
           </tr>
         `).join('');
       } catch (error) {
+        console.error('Error loading providers:', error);
         showNotification('Error loading providers: ' + error.message, true);
       }
     }
@@ -993,7 +1004,35 @@
 
     // Modal trigger functions
     function showAddProviderModal() {
-      showModal('provider-modal');
+      // Refresh provider types before showing modal
+      loadProviderTypes().then(() => {
+        showModal('provider-modal');
+      }).catch(error => {
+        console.error('Error loading provider types:', error);
+        showNotification('Failed to load provider types', true);
+      });
+    }
+
+    // Function to load provider types
+    async function loadProviderTypes() {
+      try {
+        const response = await fetch('/provider-type/');
+        if (!response.ok) throw new Error('Failed to fetch provider types');
+        const providerTypes = await response.json();
+        
+        const providerTypeSelect = document.querySelector('#provider-modal select[name="provider_type_id"]');
+        if (providerTypeSelect) {
+          providerTypeSelect.innerHTML = `
+            <option value="">Select a provider type</option>
+            ${providerTypes.map(type => `<option value="${type.id}">${type.name}</option>`).join('')}
+          `;
+        } else {
+          throw new Error('Provider type select element not found');
+        }
+      } catch (error) {
+        console.error('Error loading provider types:', error);
+        throw error;
+      }
     }
 
     function showAddRequestTypeModal() {
