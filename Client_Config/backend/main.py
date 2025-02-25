@@ -1,6 +1,5 @@
 # main.py
 from fastapi import FastAPI, Depends, HTTPException
-from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import create_engine
@@ -12,25 +11,21 @@ from uuid import UUID
 import os
 from google.cloud.sql.connector import Connector
 import sqlalchemy
-from fastapi.responses import FileResponse
 
 # Initialize Cloud SQL Python Connector object
 connector = Connector()
 
 # Cloud SQL connection details
-INSTANCE_CONNECTION_NAME = "talky-conversational-ai:us-central1:get-talky-db"  # Replace with your instance connection name
-DB_USER = "postgres"  # Replace with your database user
-DB_PASS = 'U"vQE"j8tZU4jD$r'  # Replace with your database password
+INSTANCE_CONNECTION_NAME = "talky-conversational-ai:us-central1:get-talky-db"
 DB_NAME = "get-talky-demo"
 
 # Function to create the database connection
 def getconn():
     conn = connector.connect(
         INSTANCE_CONNECTION_NAME,
-        "pg8000",  # Use pg8000 driver for PostgreSQL
-        user=DB_USER,
-        password=DB_PASS,
-        db=DB_NAME
+        "pg8000",
+        db=DB_NAME,
+        enable_iam_auth=True
     )
     return conn
 
@@ -54,19 +49,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Mount static files
-app.mount("/static", StaticFiles(directory="static"), name="static")
-
-# Serve index.html
-@app.get("/")
-async def read_index():
-    return FileResponse("index.html")
-
-# Serve edit-config.html
-@app.get("/edit-config.html")
-async def read_edit_config():
-    return FileResponse("edit-config.html")
 
 # Dependency
 def get_db():

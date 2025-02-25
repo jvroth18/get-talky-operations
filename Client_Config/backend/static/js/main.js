@@ -1,8 +1,7 @@
 // main.js
 
-// API Base URL - Update this to point to your backend server
-const API_BASE_URL = 'http://localhost:8080'; // For local development
-// const API_BASE_URL = 'https://your-cloud-run-url'; // For production
+// API Base URL
+const API_BASE_URL = ''; // Adjust if needed, e.g. '/api'
 
 // Utility function to show notifications
 function showNotification(message, isError = false) {

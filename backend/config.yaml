@@ -1,0 +1,13 @@
+# Cloud Run Deployment Configuration
+project_id: "talky-conversational-ai"
+region: "us-central1"
+service_name: "get-talky-api"
+image_name: "get-talky-api"
+instance_connection_name: "talky-conversational-ai:us-central1:get-talky-db"
+database_name: "get-talky-demo"
+min_instances: 0
+max_instances: 10
+memory: "512Mi"
+cpu: "1"
+timeout: "300s"
+concurrency: 80 
