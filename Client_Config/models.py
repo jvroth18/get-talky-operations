@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Table
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from uuid import uuid4
@@ -95,6 +95,15 @@ class Configuration(Base):
     users = relationship("User", back_populates="configuration")
     interactions = relationship("Interaction", back_populates="configuration")
 
+# Association table for providers and request types
+providers_request_types = Table(
+    'providers_request_types',
+    Base.metadata,
+    Column('id', Integer, primary_key=True),
+    Column('request_type_id', Integer, ForeignKey('request_types.id')),
+    Column('provider_id', Integer, ForeignKey('providers.id'))
+)
+
 class Provider(Base):
     __tablename__ = "providers"
     
@@ -111,6 +120,7 @@ class Provider(Base):
 
     configuration = relationship("Configuration", back_populates="providers")
     requests = relationship("Request", back_populates="provider")
+    request_types = relationship("RequestType", secondary=providers_request_types, back_populates="providers")
 
 class RequestType(Base):
     __tablename__ = "request_types"
@@ -125,6 +135,7 @@ class RequestType(Base):
 
     configuration = relationship("Configuration", back_populates="request_types")
     requests = relationship("Request", back_populates="request_type")
+    providers = relationship("Provider", secondary=providers_request_types, back_populates="request_types")
 
 class InteractionType(Base):
     __tablename__ = "interaction_types"

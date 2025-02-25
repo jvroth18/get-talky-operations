@@ -22,55 +22,64 @@
       overflow-x: hidden;
     }
     .banner {
-      @apply bg-purple-600 text-white p-4 rounded-t-lg shadow-md text-center font-bold text-xl;
+      @apply bg-gradient-to-r from-purple-600 to-purple-700 text-white py-5 px-6 rounded-t-lg shadow-md text-center font-bold text-xl border-b border-purple-800;
     }
     .card {
-      @apply bg-white p-6 rounded-lg shadow-md border border-gray-200 transition-all duration-200 hover:shadow-lg;
+      @apply bg-white p-6 rounded-xl shadow-lg border border-gray-200 transition-all duration-200 hover:shadow-xl;
     }
     .form-input {
-      @apply w-full p-3 bg-gray-100 rounded-lg text-gray-800 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200;
+      @apply w-full p-3 bg-white rounded-lg text-gray-800 border border-gray-300 
+             focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent 
+             transition-all duration-200 shadow-sm;
     }
     .form-label {
       @apply block text-sm mb-2 font-medium text-gray-700;
     }
     .submit-button, .action-button {
-      @apply bg-purple-600 hover:bg-purple-700 text-white p-2 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 w-full mt-4;
+      @apply bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 
+             text-white p-3 rounded-lg font-medium transition-all duration-300 
+             transform hover:scale-105 w-full mt-4 shadow-md;
     }
     .remove-button {
-      @apply bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded font-medium transition-all duration-300 transform hover:scale-105;
+      @apply bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg font-medium 
+             transition-all duration-300 transform hover:scale-105 shadow-sm;
     }
     .tab-button {
-      @apply px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-t-lg font-medium transition-all duration-200;
+      @apply px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-t-lg font-medium 
+             transition-all duration-200 shadow-sm;
     }
     .tab-button.active {
-      @apply bg-purple-600 text-white shadow-md;
+      @apply bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-md;
     }
     .tab-content {
-      @apply bg-white p-6 rounded-lg shadow-md border border-gray-200 transition-all duration-300;
+      @apply bg-white p-8 rounded-lg shadow-lg border border-gray-200 transition-all duration-300;
     }
     .add-form {
-      @apply space-y-4 mt-4 bg-gray-50 p-4 rounded-lg border border-gray-200;
+      @apply space-y-4 mt-4 bg-gray-50 p-6 rounded-lg border border-gray-200 shadow-inner;
     }
     .table-container {
-      @apply overflow-x-auto mt-2;
+      @apply overflow-x-auto mt-4 border rounded-lg border-gray-200 shadow-inner;
     }
     .enum-table {
       @apply table-auto w-full border border-gray-200 text-sm;
     }
     .enum-table thead {
-      @apply bg-purple-100;
+      @apply bg-gradient-to-r from-gray-50 to-gray-100;
     }
     .enum-table thead th {
-      @apply text-gray-700 font-medium py-2;
+      @apply text-gray-600 font-semibold py-3 uppercase text-xs tracking-wider;
     }
     .enum-table th, .enum-table td {
-      @apply px-4 py-2 border-b border-gray-200 align-top;
+      @apply px-4 py-3 border-b border-gray-200 align-top;
     }
     .enum-table tbody tr:nth-child(even) {
       @apply bg-gray-50;
     }
+    .enum-table tbody tr {
+      @apply transition-colors duration-150;
+    }
     .enum-table tbody tr:hover {
-      @apply bg-gray-100;
+      @apply bg-purple-50;
     }
     .enum-table td {
       @apply text-gray-700 whitespace-normal;
@@ -78,8 +87,62 @@
     .action-col {
       @apply w-24 text-center;
     }
+    
+    /* Updated grid-card styling */
     .grid-card {
-      @apply bg-white p-6 rounded-lg shadow-md border border-gray-200 transition-all duration-200 hover:shadow-lg;
+      @apply bg-white p-6 rounded-xl shadow-lg border border-gray-200 transition-all duration-300 
+             hover:shadow-xl flex flex-col overflow-hidden;
+    }
+    
+    /* Updated card-header styling */
+    .card-header {
+      @apply mb-4 pb-3 border-b border-gray-200 flex flex-col items-center;
+    }
+    
+    .card-header h4 {
+      @apply text-xl font-semibold text-purple-600 mb-3 text-center;
+    }
+    
+    /* New styles for consistency with edit-config.html */
+    .page-header {
+      @apply mb-8 bg-white rounded-xl shadow-lg p-6 border border-gray-200;
+    }
+    #notification {
+      @apply fixed top-6 right-6 p-4 rounded-lg text-white shadow-lg transform transition-all duration-300 z-50;
+    }
+    .section-title {
+      @apply text-xl font-semibold text-purple-600 mb-6 pb-2 border-b border-purple-200;
+    }
+    .add-new-btn {
+      @apply mt-4 bg-white text-purple-600 px-4 py-2 rounded-lg flex items-center space-x-2 text-sm font-medium 
+             hover:bg-purple-50 transition-colors duration-200 shadow-sm border border-purple-200;
+    }
+    .status-badge {
+      @apply px-3 py-1 rounded-full text-xs font-medium inline-flex items-center;
+    }
+    .status-badge.active {
+      @apply bg-green-100 text-green-800;
+    }
+    .status-badge.inactive {
+      @apply bg-red-100 text-red-800;
+    }
+    
+    /* Enhanced enum card styling */
+    .enum-card {
+      @apply bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden transition-all duration-300
+             hover:shadow-xl mb-6;
+    }
+    .enum-card-header {
+      @apply bg-gradient-to-r from-purple-600 to-purple-700 text-white py-3 px-4 text-center;
+    }
+    .enum-card-header h4 {
+      @apply text-lg font-semibold;
+    }
+    .enum-card-content {
+      @apply p-4;
+    }
+    .enum-card-footer {
+      @apply bg-gray-50 px-4 py-3 border-t border-gray-200 flex justify-center;
     }
   </style>
 </head>
@@ -88,11 +151,11 @@
   <!-- Notification Element -->
   <div
     id="notification"
-    class="hidden fixed top-6 right-6 p-4 rounded-lg bg-purple-600 text-white shadow-md transform transition-all duration-300"
+    class="hidden"
   ></div>
 
-  <header class="text-center mb-6">
-    <h1 class="text-3xl font-bold text-purple-600 inline-block p-4 rounded-lg">
+  <header class="page-header">
+    <h1 class="text-3xl font-bold text-purple-600 text-center">
       Get Talky Command Center
     </h1>
   </header>
@@ -111,13 +174,13 @@
   <!-- Tab Content: Global Configuration -->
   <div id="global-config" class="tab-content">
     <div class="banner">Global Configuration</div>
-    <div class="space-y-6">
+    <div class="space-y-6 p-6">
       <!-- Client Configurations Card -->
       <div class="card">
-        <h3 class="text-lg font-medium mb-4 text-purple-600">
-          Client Configurations
-        </h3>
-        <div id="config-list" class="mb-4"></div>
+        <div class="card-header">
+          <h3>Client Configurations</h3>
+        </div>
+        <div id="config-list" class="mb-4 table-container"></div>
         <button id="add-config-btn" class="submit-button w-full mt-4">
           Add New Configuration
         </button>
@@ -125,21 +188,30 @@
 
       <!-- Enum Tables Section -->
       <div class="card">
-        <h3 class="text-lg font-medium mb-4 text-purple-600">Enum Tables</h3>
+        <div class="card-header flex justify-between items-center mb-6">
+          <h3 class="text-2xl font-semibold text-purple-600">Enum Tables</h3>
+        </div>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <!-- Client Types Card -->
-          <div class="card">
-            <h4 class="text-lg font-semibold text-purple-600 mb-2 border-b pb-2">
-              Client Types
-            </h4>
-            <div id="client-type-list"></div>
-            <button
-              id="toggle-client-type-form"
-              class="mt-4 bg-gray-200 px-3 py-1 rounded text-sm text-gray-700 hover:bg-gray-300"
-            >
-              Add New
-            </button>
-            <div id="client-type-form-container" class="hidden">
+          <div class="enum-card">
+            <div class="enum-card-header">
+              <h4>Client Types</h4>
+            </div>
+            <div class="enum-card-content">
+              <div id="client-type-list" class="table-container"></div>
+            </div>
+            <div class="enum-card-footer">
+              <button
+                id="toggle-client-type-form"
+                class="add-new-btn"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
+                </svg>
+                Add New
+              </button>
+            </div>
+            <div id="client-type-form-container" class="hidden p-4 border-t border-gray-200">
               <form id="add-client-type-form" class="add-form">
                 <div>
                   <label for="client-type-name" class="form-label">Name</label>
@@ -170,18 +242,25 @@
           </div>
 
           <!-- User Roles Card -->
-          <div class="card">
-            <h4 class="text-lg font-semibold text-purple-600 mb-2 border-b pb-2">
-              User Roles
-            </h4>
-            <div id="user-role-list"></div>
-            <button
-              id="toggle-user-role-form"
-              class="mt-4 bg-gray-200 px-3 py-1 rounded text-sm text-gray-700 hover:bg-gray-300"
-            >
-              Add New
-            </button>
-            <div id="user-role-form-container" class="hidden">
+          <div class="enum-card">
+            <div class="enum-card-header">
+              <h4>User Roles</h4>
+            </div>
+            <div class="enum-card-content">
+              <div id="user-role-list" class="table-container"></div>
+            </div>
+            <div class="enum-card-footer">
+              <button
+                id="toggle-user-role-form"
+                class="add-new-btn"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
+                </svg>
+                Add New
+              </button>
+            </div>
+            <div id="user-role-form-container" class="hidden p-4 border-t border-gray-200">
               <form id="add-user-role-form" class="add-form">
                 <div>
                   <label for="user-role-name" class="form-label">Name</label>
@@ -212,18 +291,25 @@
           </div>
 
           <!-- Provider Types Card -->
-          <div class="card">
-            <h4 class="text-lg font-semibold text-purple-600 mb-2 border-b pb-2">
-              Provider Types
-            </h4>
-            <div id="provider-type-list"></div>
-            <button
-              id="toggle-provider-type-form"
-              class="mt-4 bg-gray-200 px-3 py-1 rounded text-sm text-gray-700 hover:bg-gray-300"
-            >
-              Add New
-            </button>
-            <div id="provider-type-form-container" class="hidden">
+          <div class="enum-card">
+            <div class="enum-card-header">
+              <h4>Provider Types</h4>
+            </div>
+            <div class="enum-card-content">
+              <div id="provider-type-list" class="table-container"></div>
+            </div>
+            <div class="enum-card-footer">
+              <button
+                id="toggle-provider-type-form"
+                class="add-new-btn"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
+                </svg>
+                Add New
+              </button>
+            </div>
+            <div id="provider-type-form-container" class="hidden p-4 border-t border-gray-200">
               <form id="add-provider-type-form" class="add-form">
                 <div>
                   <label for="provider-type-name" class="form-label">Name</label>
@@ -254,18 +340,25 @@
           </div>
 
           <!-- Interactor Roles Card -->
-          <div class="card">
-            <h4 class="text-lg font-semibold text-purple-600 mb-2 border-b pb-2">
-              Interactor Roles
-            </h4>
-            <div id="interactor-role-list"></div>
-            <button
-              id="toggle-interactor-role-form"
-              class="mt-4 bg-gray-200 px-3 py-1 rounded text-sm text-gray-700 hover:bg-gray-300"
-            >
-              Add New
-            </button>
-            <div id="interactor-role-form-container" class="hidden">
+          <div class="enum-card">
+            <div class="enum-card-header">
+              <h4>Interactor Roles</h4>
+            </div>
+            <div class="enum-card-content">
+              <div id="interactor-role-list" class="table-container"></div>
+            </div>
+            <div class="enum-card-footer">
+              <button
+                id="toggle-interactor-role-form"
+                class="add-new-btn"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
+                </svg>
+                Add New
+              </button>
+            </div>
+            <div id="interactor-role-form-container" class="hidden p-4 border-t border-gray-200">
               <form id="add-interactor-role-form" class="add-form">
                 <div>
                   <label for="interactor-role-name" class="form-label">Name</label>
@@ -296,18 +389,25 @@
           </div>
 
           <!-- Pet Types Card -->
-          <div class="card">
-            <h4 class="text-lg font-semibold text-purple-600 mb-2 border-b pb-2">
-              Pet Types
-            </h4>
-            <div id="pet-type-list"></div>
-            <button
-              id="toggle-pet-type-form"
-              class="mt-4 bg-gray-200 px-3 py-1 rounded text-sm text-gray-700 hover:bg-gray-300"
-            >
-              Add New
-            </button>
-            <div id="pet-type-form-container" class="hidden">
+          <div class="enum-card">
+            <div class="enum-card-header">
+              <h4>Pet Types</h4>
+            </div>
+            <div class="enum-card-content">
+              <div id="pet-type-list" class="table-container"></div>
+            </div>
+            <div class="enum-card-footer">
+              <button
+                id="toggle-pet-type-form"
+                class="add-new-btn"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
+                </svg>
+                Add New
+              </button>
+            </div>
+            <div id="pet-type-form-container" class="hidden p-4 border-t border-gray-200">
               <form id="add-pet-type-form" class="add-form">
                 <div>
                   <label for="pet-type-name" class="form-label">Name</label>
@@ -338,18 +438,25 @@
           </div>
 
           <!-- Sex Card -->
-          <div class="card">
-            <h4 class="text-lg font-semibold text-purple-600 mb-2 border-b pb-2">
-              Sex
-            </h4>
-            <div id="sex-list"></div>
-            <button
-              id="toggle-sex-form"
-              class="mt-4 bg-gray-200 px-3 py-1 rounded text-sm text-gray-700 hover:bg-gray-300"
-            >
-              Add New
-            </button>
-            <div id="sex-form-container" class="hidden">
+          <div class="enum-card">
+            <div class="enum-card-header">
+              <h4>Sex</h4>
+            </div>
+            <div class="enum-card-content">
+              <div id="sex-list" class="table-container"></div>
+            </div>
+            <div class="enum-card-footer">
+              <button
+                id="toggle-sex-form"
+                class="add-new-btn"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
+                </svg>
+                Add New
+              </button>
+            </div>
+            <div id="sex-form-container" class="hidden p-4 border-t border-gray-200">
               <form id="add-sex-form" class="add-form">
                 <div>
                   <label for="sex-name" class="form-label">Name</label>
@@ -376,18 +483,25 @@
           </div>
 
           <!-- Interaction Categories Card -->
-          <div class="card">
-            <h4 class="text-lg font-semibold text-purple-600 mb-2 border-b pb-2">
-              Interaction Categories
-            </h4>
-            <div id="interaction-category-list"></div>
-            <button
-              id="toggle-interaction-category-form"
-              class="mt-4 bg-gray-200 px-3 py-1 rounded text-sm text-gray-700 hover:bg-gray-300"
-            >
-              Add New
-            </button>
-            <div id="interaction-category-form-container" class="hidden">
+          <div class="enum-card">
+            <div class="enum-card-header">
+              <h4>Interaction Categories</h4>
+            </div>
+            <div class="enum-card-content">
+              <div id="interaction-category-list" class="table-container"></div>
+            </div>
+            <div class="enum-card-footer">
+              <button
+                id="toggle-interaction-category-form"
+                class="add-new-btn"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
+                </svg>
+                Add New
+              </button>
+            </div>
+            <div id="interaction-category-form-container" class="hidden p-4 border-t border-gray-200">
               <form id="add-interaction-category-form" class="add-form">
                 <div>
                   <label for="interaction-category-name" class="form-label">
@@ -427,12 +541,12 @@
   <!-- Tab Content: Add Client Configuration -->
   <div id="add-config" class="tab-content hidden">
     <div class="banner">Add Client Configuration</div>
-    <div class="space-y-6">
+    <div class="space-y-6 p-6">
       <!-- Configuration Details -->
       <div class="card">
-        <h3 class="text-lg font-medium mb-4 text-purple-600">
-          Configuration Details
-        </h3>
+        <div class="card-header">
+          <h3>Configuration Details</h3>
+        </div>
         <form id="config-form" class="space-y-6">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -462,23 +576,25 @@
               <!-- Populated dynamically -->
             </select>
           </div>
-          <div>
-            <label class="form-label">ElevenLabs Model</label>
-            <input
-              type="text"
-              id="elevenlabs-model"
-              class="form-input"
-              placeholder="Enter Model"
-            />
-          </div>
-          <div>
-            <label class="form-label">ElevenLabs Voice ID</label>
-            <input
-              type="text"
-              id="elevenlabs-voice"
-              class="form-input"
-              placeholder="Enter Voice ID"
-            />
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="form-label">ElevenLabs Model</label>
+              <input
+                type="text"
+                id="elevenlabs-model"
+                class="form-input"
+                placeholder="Enter Model"
+              />
+            </div>
+            <div>
+              <label class="form-label">ElevenLabs Voice ID</label>
+              <input
+                type="text"
+                id="elevenlabs-voice"
+                class="form-input"
+                placeholder="Enter Voice ID"
+              />
+            </div>
           </div>
           <div>
             <label class="form-label">Client Internal ID</label>
@@ -527,15 +643,6 @@
               placeholder="Enter Services"
             ></textarea>
           </div>
-          <div>
-            <label class="form-label">Locations</label>
-            <textarea
-              id="locations"
-              class="form-input"
-              rows="3"
-              placeholder="Enter Locations"
-            ></textarea>
-          </div>
           <button type="submit" class="submit-button">
             Save Configuration
           </button>
@@ -546,66 +653,93 @@
       <div id="related-entities" class="hidden space-y-6">
         <!-- Providers -->
         <div class="card">
-          <h3 class="text-lg font-medium mb-4 text-purple-600">Providers</h3>
-          <div id="provider-list" class="mb-4"></div>
+          <div class="card-header">
+            <h3>Providers</h3>
+          </div>
+          <div id="provider-list" class="mb-4 table-container"></div>
           <form id="provider-form" class="add-form">
             <input type="hidden" id="provider-config-id" />
-            <input
-              type="text"
-              id="provider-first"
-              placeholder="First Name"
-              class="form-input"
-              required
-            />
-            <input
-              type="text"
-              id="provider-last"
-              placeholder="Last Name"
-              class="form-input"
-              required
-            />
-            <input
-              type="tel"
-              id="provider-phone"
-              placeholder="Phone Number"
-              class="form-input"
-            />
-            <input
-              type="email"
-              id="provider-email"
-              placeholder="Email"
-              class="form-input"
-            />
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="form-label">First Name</label>
+                <input
+                  type="text"
+                  id="provider-first"
+                  placeholder="First Name"
+                  class="form-input"
+                  required
+                />
+              </div>
+              <div>
+                <label class="form-label">Last Name</label>
+                <input
+                  type="text"
+                  id="provider-last"
+                  placeholder="Last Name"
+                  class="form-input"
+                  required
+                />
+              </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="form-label">Phone</label>
+                <input
+                  type="tel"
+                  id="provider-phone"
+                  placeholder="Phone Number"
+                  class="form-input"
+                />
+              </div>
+              <div>
+                <label class="form-label">Email</label>
+                <input
+                  type="email"
+                  id="provider-email"
+                  placeholder="Email"
+                  class="form-input"
+                />
+              </div>
+            </div>
             <button type="submit" class="submit-button">Add Provider</button>
           </form>
         </div>
         <!-- Request Types -->
         <div class="card">
-          <h3 class="text-lg font-medium mb-4 text-purple-600">
-            Request Types
-          </h3>
-          <div id="request-list" class="mb-4"></div>
+          <div class="card-header">
+            <h3>Request Types</h3>
+          </div>
+          <div id="request-list" class="mb-4 table-container"></div>
           <form id="request-form" class="add-form">
             <input type="hidden" id="request-config-id" />
-            <input
-              type="text"
-              id="request-name"
-              placeholder="Name"
-              class="form-input"
-              required
-            />
-            <input
-              type="text"
-              id="request-desc"
-              placeholder="Description"
-              class="form-input"
-            />
-            <input
-              type="number"
-              id="request-length"
-              placeholder="Length (minutes)"
-              class="form-input"
-            />
+            <div>
+              <label class="form-label">Name</label>
+              <input
+                type="text"
+                id="request-name"
+                placeholder="Name"
+                class="form-input"
+                required
+              />
+            </div>
+            <div>
+              <label class="form-label">Description</label>
+              <input
+                type="text"
+                id="request-desc"
+                placeholder="Description"
+                class="form-input"
+              />
+            </div>
+            <div>
+              <label class="form-label">Length (minutes)</label>
+              <input
+                type="number"
+                id="request-length"
+                placeholder="Length (minutes)"
+                class="form-input"
+              />
+            </div>
             <button type="submit" class="submit-button">
               Add Request Type
             </button>
@@ -613,29 +747,40 @@
         </div>
         <!-- Locations -->
         <div class="card">
-          <h3 class="text-lg font-medium mb-4 text-purple-600">Locations</h3>
-          <div id="location-list" class="mb-4"></div>
+          <div class="card-header">
+            <h3>Locations</h3>
+          </div>
+          <div id="location-list" class="mb-4 table-container"></div>
           <form id="location-form" class="add-form">
             <input type="hidden" id="location-config-id" />
-            <input
-              type="text"
-              id="location-name"
-              placeholder="Name"
-              class="form-input"
-              required
-            />
-            <input
-              type="tel"
-              id="location-phone"
-              placeholder="Phone Number"
-              class="form-input"
-            />
-            <input
-              type="text"
-              id="location-hours"
-              placeholder="Operating Hours"
-              class="form-input"
-            />
+            <div>
+              <label class="form-label">Name</label>
+              <input
+                type="text"
+                id="location-name"
+                placeholder="Name"
+                class="form-input"
+                required
+              />
+            </div>
+            <div>
+              <label class="form-label">Phone</label>
+              <input
+                type="tel"
+                id="location-phone"
+                placeholder="Phone Number"
+                class="form-input"
+              />
+            </div>
+            <div>
+              <label class="form-label">Operating Hours</label>
+              <input
+                type="text"
+                id="location-hours"
+                placeholder="Operating Hours"
+                class="form-input"
+              />
+            </div>
             <button type="submit" class="submit-button">
               Add Location
             </button>
@@ -643,47 +788,66 @@
         </div>
         <!-- Users -->
         <div class="card">
-          <h3 class="text-lg font-medium mb-4 text-purple-600">Users</h3>
-          <div id="user-list" class="mb-4"></div>
+          <div class="card-header">
+            <h3>Users</h3>
+          </div>
+          <div id="user-list" class="mb-4 table-container"></div>
           <form id="user-form" class="add-form">
             <input type="hidden" id="user-config-id" />
-            <input
-              type="text"
-              id="user-first"
-              placeholder="First Name"
-              class="form-input"
-              required
-            />
-            <input
-              type="text"
-              id="user-last"
-              placeholder="Last Name"
-              class="form-input"
-              required
-            />
-            <input
-              type="tel"
-              id="user-phone"
-              placeholder="Phone Number"
-              class="form-input"
-            />
-            <input
-              type="email"
-              id="user-email"
-              placeholder="Email"
-              class="form-input"
-            />
-            <select id="user-role" class="form-input" required>
-              <!-- Populated dynamically -->
-            </select>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="form-label">First Name</label>
+                <input
+                  type="text"
+                  id="user-first"
+                  placeholder="First Name"
+                  class="form-input"
+                  required
+                />
+              </div>
+              <div>
+                <label class="form-label">Last Name</label>
+                <input
+                  type="text"
+                  id="user-last"
+                  placeholder="Last Name"
+                  class="form-input"
+                  required
+                />
+              </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="form-label">Phone</label>
+                <input
+                  type="tel"
+                  id="user-phone"
+                  placeholder="Phone Number"
+                  class="form-input"
+                />
+              </div>
+              <div>
+                <label class="form-label">Email</label>
+                <input
+                  type="email"
+                  id="user-email"
+                  placeholder="Email"
+                  class="form-input"
+                />
+              </div>
+            </div>
+            <div>
+              <label class="form-label">Role</label>
+              <select id="user-role" class="form-input" required>
+                <!-- Populated dynamically -->
+              </select>
+            </div>
             <button type="submit" class="submit-button">Add User</button>
           </form>
         </div>
       </div>
     </div>
   </div>
-
-  <!-- Removed the entire "Edit Client Configurations" tab -->
 
   <!-- Link to your main.js -->
   <script src="static/js/main.js" defer></script>

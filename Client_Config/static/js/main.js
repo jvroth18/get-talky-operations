@@ -200,6 +200,7 @@ async function handleConfigurationSubmit(event, isEdit = false) {
     : '/configurations/';
 
   try {
+    console.log('Submitting configuration with data:', formData);
     const result = await apiCall(endpoint, method, formData);
     showNotification(
       isEdit
@@ -216,6 +217,7 @@ async function handleConfigurationSubmit(event, isEdit = false) {
     loadConfigurations();
     if (!isEdit) form.reset();
   } catch (error) {
+    console.error('Configuration submission error:', error);
     showNotification(
       `Failed to ${isEdit ? 'update' : 'create'} configuration: ` +
         error.message,

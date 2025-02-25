@@ -2,7 +2,7 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from models import Base, Configuration, ClientType, Provider, RequestType, ClientApiKey, User, Location, UserRole, InteractorRole, PetType, Sex, InteractionCategory, ProviderType
@@ -86,6 +86,8 @@ class ConfigurationCreate(BaseModel):
     client_type_id: int
     about_us: Optional[str] = None
     services: Optional[str] = None
+    twilio_phone_number: Optional[str] = None
+    twilio_phone_number_sid: Optional[str] = None
 
 class ProviderCreate(BaseModel):
     configuration_id: int
@@ -94,6 +96,7 @@ class ProviderCreate(BaseModel):
     phone_number: Optional[str] = None
     email: Optional[str] = None
     provider_type_id: int
+    request_type_ids: List[int] = []
 
 class RequestTypeCreate(BaseModel):
     configuration_id: int
@@ -313,10 +316,25 @@ def update_configuration(config_id: int, config: ConfigurationCreate, db: Sessio
 
 @app.post("/providers/", response_model=ProviderCreate)
 def create_provider(provider: ProviderCreate, db: Session = Depends(get_db)):
-    db_provider = Provider(**provider.dict(exclude_unset=True))
+    db_provider = Provider(
+        configuration_id=provider.configuration_id,
+        first_name=provider.first_name,
+        last_name=provider.last_name,
+        phone_number=provider.phone_number,
+        email=provider.email,
+        provider_type_id=provider.provider_type_id
+    )
     db.add(db_provider)
     db.commit()
     db.refresh(db_provider)
+
+    # Add request type associations
+    if provider.request_type_ids:
+        request_types = db.query(RequestType).filter(RequestType.id.in_(provider.request_type_ids)).all()
+        db_provider.request_types.extend(request_types)
+        db.commit()
+        db.refresh(db_provider)
+
     return provider
 
 @app.post("/request_types/", response_model=RequestTypeCreate)
@@ -353,7 +371,9 @@ def create_location(location: LocationCreate, db: Session = Depends(get_db)):
 
 @app.get("/providers/{config_id}")
 def get_providers(config_id: int, db: Session = Depends(get_db)):
-    providers = db.query(Provider).filter(Provider.configuration_id == config_id).all()
+    providers = db.query(Provider).options(
+        joinedload(Provider.request_types)
+    ).filter(Provider.configuration_id == config_id).all()
     return providers
 
 @app.get("/request_types/{config_id}")
