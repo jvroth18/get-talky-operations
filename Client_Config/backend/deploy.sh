@@ -1,35 +1,27 @@
 #!/bin/bash
 
-# Exit on any error
-set -e
-
 # Configuration
-PROJECT_ID=$(gcloud config get-value project)
-IMAGE_NAME="client-config-backend"
+PROJECT_ID="talky-conversational-ai"
 REGION="us-central1"
-SERVICE_NAME="client-config-backend"
+SERVICE_NAME="get-talky-backend"
+VPC_CONNECTOR="vpc-connector"
+DB_USER_SECRET="get-talky-db-user"
+DB_PASS_SECRET="get-talky-db-password"
 
-# Replace PROJECT_ID in config.yaml
-sed -i "s|gcr.io/PROJECT_ID/client-config-backend|gcr.io/${PROJECT_ID}/${IMAGE_NAME}|g" config.yaml
-
-# Build the Docker image
-echo "Building Docker image..."
-docker build -t gcr.io/${PROJECT_ID}/${IMAGE_NAME} .
-
-# Push the image to Google Container Registry
-echo "Pushing image to Google Container Registry..."
-docker push gcr.io/${PROJECT_ID}/${IMAGE_NAME}
+# Build the container
+echo "Building container..."
+gcloud builds submit --tag gcr.io/${PROJECT_ID}/${SERVICE_NAME}
 
 # Deploy to Cloud Run
 echo "Deploying to Cloud Run..."
-gcloud run services replace config.yaml --region=${REGION}
+gcloud run deploy ${SERVICE_NAME} \
+  --image gcr.io/${PROJECT_ID}/${SERVICE_NAME} \
+  --platform managed \
+  --region ${REGION} \
+  --project ${PROJECT_ID} \
+  --vpc-connector ${VPC_CONNECTOR} \
+  --set-env-vars "INSTANCE_CONNECTION_NAME=${PROJECT_ID}:${REGION}:get-talky-db" \
+  --set-secrets "DB_USER=${DB_USER_SECRET}:latest,DB_PASS=${DB_PASS_SECRET}:latest" \
+  --ingress internal-and-cloud-load-balancing
 
-# Make the service public
-echo "Making the service public..."
-gcloud run services add-iam-policy-binding ${SERVICE_NAME} \
-  --member="allUsers" \
-  --role="roles/run.invoker" \
-  --region=${REGION}
-
-echo "Deployment completed successfully!"
-echo "Service URL: $(gcloud run services describe ${SERVICE_NAME} --region=${REGION} --format='value(status.url)')" 
+echo "Deployment completed!"

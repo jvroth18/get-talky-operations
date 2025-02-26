@@ -3,7 +3,7 @@ uvicorn==0.15.0
 sqlalchemy==1.4.23
 pg8000==1.21.0
 pydantic==1.8.2
-google-cloud-sql-connector==1.2.1
+google-cloud-sql-connector==1.17.0
 python-multipart==0.0.5
 python-dotenv==1.0.0
 pymysql>=1.0.0
