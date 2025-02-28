@@ -21,11 +21,11 @@ from fastapi import APIRouter
 # Initialize Cloud SQL Python Connector object
 connector = Connector()
 
-# Get environment variables
-DB_USER = os.getenv("DB_USER")
-DB_PASS = os.getenv("DB_PASS")
-INSTANCE_CONNECTION_NAME = os.getenv("INSTANCE_CONNECTION_NAME")
-DB_NAME = os.getenv("DB_NAME", "get-talky-demo")
+# Cloud SQL connection details
+INSTANCE_CONNECTION_NAME = "talky-conversational-ai:us-central1:get-talky-db"
+DB_NAME = "get-talky-demo"
+DB_USER = "postgres"  # Replace with your actual database user
+DB_PASS = '1g&A3/"RjK.GLGFS'  # Replace with your actual database password
 
 # Function to create the database connection
 def getconn():
@@ -59,12 +59,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Mount static files directory
-app.mount("/static", StaticFiles(directory="static"), name="static")
-
-# Set up templates
-templates = Jinja2Templates(directory="templates")
 
 # Create an APIRouter for /api endpoints
 api_router = APIRouter()
@@ -507,27 +501,35 @@ def get_configuration_data(client_id: UUID, db: Session = Depends(get_db)):
         providers=provider_data
     )
 
+# New endpoints for getting request types and providers by client_id
+@api_router.get("/{client_id}/request_types")
+def get_request_types_by_client_id(client_id: UUID, db: Session = Depends(get_db)):
+    """Get request types for a client by client_id (UUID)"""
+    # First find the configuration by client_id
+    config = db.query(Configuration).filter(Configuration.client_id == client_id).first()
+    if not config:
+        raise HTTPException(status_code=404, detail="Configuration not found")
+    
+    # Then get the request types for that configuration
+    request_types = db.query(RequestType).filter(RequestType.configuration_id == config.id).all()
+    return request_types
+
+@api_router.get("/{client_id}/providers")
+def get_providers_by_client_id(client_id: UUID, db: Session = Depends(get_db)):
+    """Get providers for a client by client_id (UUID)"""
+    # First find the configuration by client_id
+    config = db.query(Configuration).filter(Configuration.client_id == client_id).first()
+    if not config:
+        raise HTTPException(status_code=404, detail="Configuration not found")
+    
+    # Then get the providers for that configuration with their request types
+    providers = db.query(Provider).options(
+        joinedload(Provider.request_types)
+    ).filter(Provider.configuration_id == config.id).all()
+    return providers
+
 # Include the API router
 app.include_router(api_router, prefix="/api")
-
-# Keep the page routes on the main app
-@app.get("/", response_class=HTMLResponse)
-async def read_root(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
-
-@app.get("/edit-config", response_class=HTMLResponse)
-async def edit_config(request: Request):
-    config_id = request.query_params.get('id')
-    if not config_id:
-        raise HTTPException(status_code=400, detail="Configuration ID is required")
-    return templates.TemplateResponse("edit-config.html", {"request": request, "config_id": config_id})
-
-@app.get("/edit-config.html", response_class=HTMLResponse)
-async def edit_config_html(request: Request):
-    config_id = request.query_params.get('id')
-    if not config_id:
-        raise HTTPException(status_code=400, detail="Configuration ID is required")
-    return templates.TemplateResponse("edit-config.html", {"request": request, "config_id": config_id})
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
