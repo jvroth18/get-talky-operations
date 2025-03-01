@@ -149,12 +149,13 @@ class InteractorCreate(BaseModel):
     verified: Optional[bool] = False
 
 class RequestCreate(BaseModel):
+    request_status_id: int
     request_type_id: int
     provider_id: int
     request_time: Optional[datetime] = None
 
 class ContentCreate(BaseModel):
-    interactor_role_id: int
+    interactor_role: str
     text: str
     timestamp: Optional[datetime] = None
 
@@ -167,6 +168,8 @@ class InteractionCreate(BaseModel):
     interactor_id: Optional[int] = None
     request_id: Optional[int] = None
     pet_id: Optional[int] = None
+    start_time: Optional[datetime] = None
+    end_time: Optional[datetime] = None
     contents: Optional[List[ContentCreate]] = None
 
 class PetCreateResponse(BaseModel):
@@ -186,6 +189,7 @@ class InteractorCreateResponse(BaseModel):
 
 class RequestCreateResponse(BaseModel):
     id: int
+    request_status_id: int
     request_type_id: int
     provider_id: int
     request_time: Optional[datetime] = None
@@ -206,8 +210,9 @@ class InteractionCreateResponse(BaseModel):
     interactor_id: Optional[int] = None
     request_id: Optional[int] = None
     pet_id: Optional[int] = None
+    start_time: Optional[datetime] = None
+    end_time: Optional[datetime] = None
     contents: Optional[List[ContentCreate]] = None
-
 
 # Move all existing API endpoints to use the router
 @api_router.post("/client-type/", response_model=EnumCreate)
@@ -376,9 +381,10 @@ def create_configuration(config: ConfigurationCreate, db: Session = Depends(get_
 def get_configurations(db: Session = Depends(get_db)):
     return db.query(Configuration).all()
 
-@api_router.get("/configurations/{config_id}")
-def read_configuration(config_id: int, db: Session = Depends(get_db)):
-    config = db.query(Configuration).filter(Configuration.id == config_id).first()
+@api_router.get("/configurations-uuid/{config_id}")
+def read_configuration(config_id: str, db: Session = Depends(get_db)):
+    print('Configuration ID: ', config_id)
+    config = db.query(Configuration).filter(Configuration.client_id == config_id).first()
     if not config:
         raise HTTPException(status_code=404, detail="Configuration not found")
     return config
@@ -612,7 +618,7 @@ def create_pet(pet: PetCreate, db: Session = Depends(get_db)):
     db.add(db_pet)
     db.commit()
     db.refresh(db_pet)
-    return pet
+    return db_pet
 
 @api_router.post("/interactors/", response_model=InteractorCreateResponse)
 def create_interactor(interactor: InteractorCreate, db: Session = Depends(get_db)):
@@ -621,7 +627,7 @@ def create_interactor(interactor: InteractorCreate, db: Session = Depends(get_db
     db.add(db_interactor)
     db.commit()
     db.refresh(db_interactor)
-    return interactor
+    return db_interactor
 
 @api_router.post("/requests/", response_model=RequestCreateResponse)
 def create_request(request: RequestCreate, db: Session = Depends(get_db)):
@@ -632,7 +638,7 @@ def create_request(request: RequestCreate, db: Session = Depends(get_db)):
     db.add(db_request)
     db.commit()
     db.refresh(db_request)
-    return request
+    return db_request
 
 @api_router.post("/interactions/", response_model=InteractionCreateResponse)
 def create_interaction(interaction: InteractionCreate, db: Session = Depends(get_db)):
@@ -654,7 +660,7 @@ def create_interaction(interaction: InteractionCreate, db: Session = Depends(get
             db.add(db_content)
         db.commit()
     
-    return interaction
+    return db_interaction
 
 # Include the API router
 app.include_router(api_router, prefix="/api")
