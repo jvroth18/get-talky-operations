@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from models import Base, Configuration, ClientType, Provider, RequestType, ClientApiKey, User, Location, UserRole, InteractorRole, PetType, Sex, InteractionCategory, ProviderType, Pet, Interactor, Request, Content, Interaction
+from models import Base, Configuration, ClientType, Provider, RequestType, ClientApiKey, User, Location, UserRole, InteractorRole, PetType, Sex, InteractionCategory, ProviderType, Pet, Interactor, Request, Content, Interaction, RequestStatus
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
@@ -155,6 +155,7 @@ class InteractorCreate(BaseModel):
     verified: Optional[bool] = False
 
 class RequestCreate(BaseModel):
+    request_status_id: int
     request_type_id: int
     provider_id: int
     request_time: Optional[datetime] = None
@@ -173,6 +174,8 @@ class InteractionCreate(BaseModel):
     interactor_id: Optional[int] = None
     request_id: Optional[int] = None
     pet_id: Optional[int] = None
+    start_time: Optional[datetime] = None
+    end_time: Optional[datetime] = None
     contents: Optional[List[ContentCreate]] = None
 
 class PetCreateResponse(BaseModel):
@@ -192,6 +195,7 @@ class InteractorCreateResponse(BaseModel):
 
 class RequestCreateResponse(BaseModel):
     id: int
+    request_status_id: int
     request_type_id: int
     provider_id: int
     request_time: Optional[datetime] = None
@@ -212,7 +216,50 @@ class InteractionCreateResponse(BaseModel):
     interactor_id: Optional[int] = None
     request_id: Optional[int] = None
     pet_id: Optional[int] = None
+    start_time: Optional[datetime] = None
+    end_time: Optional[datetime] = None
     contents: Optional[List[ContentCreate]] = None
+
+# New response models for the frontend APIs
+class ApplicationRequestResponse(BaseModel):
+    id: int
+    request_type: str
+    appointment_length: Optional[int]
+    first_name: Optional[str]
+    last_name: Optional[str]
+    phone_number: Optional[str]
+    pet_type: Optional[str]
+    pet_name: Optional[str]
+    pet_age: Optional[int]
+    pet_sex: Optional[str]
+    provider_name: str
+    appointment_date: Optional[datetime]
+    status: str
+    call_summary: Optional[str]
+
+class ClientInteractionResponse(BaseModel):
+    id: int
+    first_name: str
+    last_name: str
+    start_time: Optional[datetime]
+    end_time: Optional[datetime]
+    phone_number: Optional[str]
+    call_summary: Optional[str]
+
+class RequestStatusUpdate(BaseModel):
+    status: str  # pending, approved, declined
+
+# Frontend UI Request Models
+class GetRequestObjectsRequest(BaseModel):
+    client_id: UUID
+    status: Optional[str] = None
+
+class GetClientInteractionsRequest(BaseModel):
+    client_id: UUID
+
+class UpdateRequestStatusRequest(BaseModel):
+    request_id: int
+    status: str  # pending, approved, declined
 
 # Move all existing API endpoints to use the router
 @api_router.post("/client-type/", response_model=EnumCreate)
@@ -384,6 +431,14 @@ def get_configurations(db: Session = Depends(get_db)):
 @api_router.get("/configurations/{config_id}")
 def read_configuration(config_id: int, db: Session = Depends(get_db)):
     config = db.query(Configuration).filter(Configuration.id == config_id).first()
+    if not config:
+        raise HTTPException(status_code=404, detail="Configuration not found")
+    return config
+
+@api_router.get("/configurations-uuid/{config_id}")
+def read_configuration(config_id: str, db: Session = Depends(get_db)):
+    print('Configuration ID: ', config_id)
+    config = db.query(Configuration).filter(Configuration.client_id == config_id).first()
     if not config:
         raise HTTPException(status_code=404, detail="Configuration not found")
     return config
@@ -617,7 +672,7 @@ def create_pet(pet: PetCreate, db: Session = Depends(get_db)):
     db.add(db_pet)
     db.commit()
     db.refresh(db_pet)
-    return pet
+    return db_pet
 
 @api_router.post("/interactors/", response_model=InteractorCreateResponse)
 def create_interactor(interactor: InteractorCreate, db: Session = Depends(get_db)):
@@ -626,7 +681,7 @@ def create_interactor(interactor: InteractorCreate, db: Session = Depends(get_db
     db.add(db_interactor)
     db.commit()
     db.refresh(db_interactor)
-    return interactor
+    return db_interactor
 
 @api_router.post("/requests/", response_model=RequestCreateResponse)
 def create_request(request: RequestCreate, db: Session = Depends(get_db)):
@@ -637,7 +692,7 @@ def create_request(request: RequestCreate, db: Session = Depends(get_db)):
     db.add(db_request)
     db.commit()
     db.refresh(db_request)
-    return request
+    return db_request
 
 @api_router.post("/interactions/", response_model=InteractionCreateResponse)
 def create_interaction(interaction: InteractionCreate, db: Session = Depends(get_db)):
@@ -659,7 +714,174 @@ def create_interaction(interaction: InteractionCreate, db: Session = Depends(get
             db.add(db_content)
         db.commit()
     
-    return interaction
+    return db_interaction
+
+# Updated frontend UI endpoints
+@api_router.get("/ui/get_request_objects", response_model=List[ApplicationRequestResponse])
+def get_request_objects(client_id: UUID, status: Optional[str] = None, db: Session = Depends(get_db)):
+    """
+    Get application requests for a client with optional status filtering
+    
+    Args:
+        client_id: UUID of the client (query parameter)
+        status: Filter by status (pending, approved, declined) (optional query parameter)
+        
+    Returns:
+        List of application requests with details from multiple tables
+    """
+    # First find the configuration by client_id
+    config = db.query(Configuration).filter(Configuration.client_id == client_id).first()
+    if not config:
+        raise HTTPException(status_code=404, detail="Configuration not found")
+    
+    # Build the query with all necessary joins
+    query = (
+        db.query(
+            Request,
+            RequestType.name.label("request_type"),
+            RequestType.length.label("appointment_length"),
+            Interactor.first_name,
+            Interactor.last_name,
+            Interactor.phone_number,
+            Pet.name.label("pet_name"),
+            Pet.age.label("pet_age"),
+            PetType.name.label("pet_type"),
+            Sex.name.label("pet_sex"),
+            Provider.first_name.label("provider_first_name"),
+            Provider.last_name.label("provider_last_name"),
+            Interaction.interaction_summary.label("call_summary")
+        )
+        .join(RequestType, Request.request_type_id == RequestType.id)
+        .join(Provider, Request.provider_id == Provider.id)
+        .outerjoin(Interaction, Request.id == Interaction.request_id)
+        .outerjoin(Interactor, Interaction.interactor_id == Interactor.id)
+        .outerjoin(Pet, Interaction.pet_id == Pet.id)
+        .outerjoin(PetType, Pet.pet_type_id == PetType.id)
+        .outerjoin(Sex, Pet.sex_id == Sex.id)
+        .filter(RequestType.configuration_id == config.id)
+    )
+    
+    if status:
+        query = query.filter(Request.request_status_id == db.query(RequestStatus.id).filter(RequestStatus.name == status).scalar_subquery())
+    
+    results = query.all()
+    
+    response = []
+    for result in results:
+        request_obj = result[0]
+        provider_name = f"{result.provider_first_name} {result.provider_last_name}" if result.provider_first_name else "Unknown"
+        
+        response.append(
+            ApplicationRequestResponse(
+                id=request_obj.id,
+                request_type=result.request_type,
+                appointment_length=result.appointment_length,
+                first_name=result.first_name,
+                last_name=result.last_name,
+                phone_number=result.phone_number,
+                pet_type=result.pet_type,
+                pet_name=result.pet_name,
+                pet_age=result.pet_age,
+                pet_sex=result.pet_sex,
+                provider_name=provider_name,
+                appointment_date=request_obj.request_time,
+                status=db.query(RequestStatus.name).filter(RequestStatus.id == request_obj.request_status_id).scalar() or "Unknown",
+                call_summary=result.call_summary
+            )
+        )
+    
+    # Print and log the response objects
+    print("\nRequest Response Objects:")
+    for req in response:
+        print(f"\nRequest ID: {req.id}")
+        print(f"Request Type: {req.request_type}")
+        print(f"Appointment Length: {req.appointment_length}")
+        print(f"Client: {req.first_name} {req.last_name}")
+        print(f"Phone: {req.phone_number}")
+        print(f"Pet: {req.pet_name} ({req.pet_type})")
+        print(f"Pet Details: Age {req.pet_age}, Sex {req.pet_sex}")
+        print(f"Provider: {req.provider_name}")
+        print(f"Date: {req.appointment_date}")
+        print(f"Status: {req.status}")
+        print(f"Call Summary: {req.call_summary}")
+
+    return response
+
+@api_router.get("/ui/get_client_interactions", response_model=List[ClientInteractionResponse])
+def get_client_interactions(client_id: UUID, db: Session = Depends(get_db)):
+    """
+    Get all interactions for a client
+    
+    Args:
+        client_id: UUID of the client (query parameter)
+        
+    Returns:
+        List of interactions with details
+    """
+    # First find the configuration by client_id
+    config = db.query(Configuration).filter(Configuration.client_id == client_id).first()
+    if not config:
+        raise HTTPException(status_code=404, detail="Configuration not found")
+    
+    # Query interactions with necessary joins
+    query = (
+        db.query(
+            Interaction,
+            Interactor.first_name,
+            Interactor.last_name,
+            Interactor.phone_number
+        )
+        .outerjoin(Interactor, Interaction.interactor_id == Interactor.id)
+        .filter(Interaction.configuration_id == config.id)
+    )
+    
+    results = query.all()
+    
+    response = []
+    for result in results:
+        interaction = result[0]
+        
+        response.append(
+            ClientInteractionResponse(
+                id=interaction.id,
+                first_name=result.first_name or interaction.interactor_name or "Unknown",
+                last_name=result.last_name or "",
+                start_time=interaction.start_time,
+                end_time=interaction.end_time,
+                phone_number=result.phone_number,
+                call_summary=interaction.interaction_summary
+            )
+        )
+    
+    return response
+
+@api_router.put("/ui/update_request_status", response_model=RequestCreateResponse)
+def update_request_status(request: UpdateRequestStatusRequest, db: Session = Depends(get_db)):
+    """
+    Update the status of a request
+    
+    Args:
+        request: UpdateRequestStatusRequest containing request_id and new status
+        
+    Returns:
+        Updated request object
+    """
+    # Find the request
+    db_request = db.query(Request).filter(Request.id == request.request_id).first()
+    if not db_request:
+        raise HTTPException(status_code=404, detail="Request not found")
+    
+    # Find the status ID for the given status name
+    status_id = db.query(RequestStatus.id).filter(RequestStatus.name == request.status).scalar()
+    if not status_id:
+        raise HTTPException(status_code=400, detail=f"Invalid status: {request.status}")
+    
+    # Update the request status
+    db_request.request_status_id = status_id
+    db.commit()
+    db.refresh(db_request)
+    
+    return db_request
 
 # Include the API router
 app.include_router(api_router, prefix="/api")

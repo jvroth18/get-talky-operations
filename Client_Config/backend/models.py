@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Table, UUID
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Table
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from uuid import uuid4
@@ -69,12 +69,21 @@ class ProviderType(Base):
     description = Column(String(255))
     active = Column(Boolean, default=True)
 
+class RequestStatus(Base):
+    __tablename__ = "request_status"
+    __table_args__ = {'schema': 'get_talky_enum'}
+    
+    id = Column(Integer, primary_key=True)
+    name = Column(String(255), nullable=False)  # pending, approved, declined
+    description = Column(String(255))
+    active = Column(Boolean, default=True)
+
 # Main Tables
 class Configuration(Base):
     __tablename__ = "configuration"
     
     id = Column(Integer, primary_key=True)
-    client_id = Column(UUID(as_uuid=True), default=uuid4, unique=True)
+    client_id = Column(String, default=lambda: str(uuid4()))
     name = Column(String(255))
     elevenlabs_model = Column(String(255))
     elevenlabs_voice_id = Column(String(255))
@@ -210,6 +219,8 @@ class Interaction(Base):
     interactor_id = Column(Integer, ForeignKey("interactor.id"))
     request_id = Column(Integer, ForeignKey("request.id"))
     pet_id = Column(Integer, ForeignKey("pet.id"))
+    start_time = Column(DateTime)
+    end_time = Column(DateTime)
 
     configuration = relationship("Configuration", back_populates="interactions")
     interaction_type = relationship("InteractionType", back_populates="interactions")
@@ -240,10 +251,12 @@ class Request(Base):
     request_type_id = Column(Integer, ForeignKey("request_types.id"))
     provider_id = Column(Integer, ForeignKey("providers.id"))
     request_time = Column(DateTime)
+    request_status_id = Column(Integer, ForeignKey("get_talky_enum.request_status.id"))
 
     request_type = relationship("RequestType", back_populates="requests")
     provider = relationship("Provider", back_populates="requests")
     interactions = relationship("Interaction", back_populates="request")
+    status = relationship("RequestStatus")
 
 class Pet(Base):
     __tablename__ = "pet"
