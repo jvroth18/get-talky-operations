@@ -4,9 +4,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from models import Base, Configuration, ClientType, Provider, RequestType, ClientApiKey, User, Location, UserRole, InteractorRole, PetType, Sex, InteractionCategory, ProviderType
+from models import Base, Configuration, ClientType, Provider, RequestType, ClientApiKey, User, Location, UserRole, InteractorRole, PetType, Sex, InteractionCategory, ProviderType, Pet, Interactor, Request, Content, Interaction
 from pydantic import BaseModel
 from typing import List, Optional
+from datetime import datetime
 from uuid import UUID
 import os
 from google.cloud.sql.connector import Connector
@@ -132,6 +133,46 @@ class ConfigurationData(BaseModel):
     locations: List[dict] = []
     request_types: List[dict] = []
     providers: List[dict] = []
+
+# New Pydantic models for POST requests
+class PetCreate(BaseModel):
+    id: int
+    pet_type_id: int
+    name: str
+    age: Optional[int] = None
+    sex_id: Optional[int] = None
+
+class InteractorCreate(BaseModel):
+    id: int
+    first_name: str
+    last_name: str
+    phone_number: Optional[str] = None
+    email: Optional[str] = None
+    verified: Optional[bool] = False
+
+class RequestCreate(BaseModel):
+    id: int
+    request_type_id: int
+    provider_id: int
+    request_time: Optional[datetime] = None
+
+class ContentCreate(BaseModel):
+    id: int
+    interactor_role_id: int
+    text: str
+    timestamp: Optional[datetime] = None
+
+class InteractionCreate(BaseModel):
+    id: int
+    configuration_id: int
+    interaction_type_id: Optional[int] = None
+    interaction_summary: Optional[str] = None
+    interactor_name: Optional[str] = None
+    interaction_category_id: Optional[int] = None
+    interactor_id: Optional[int] = None
+    request_id: Optional[int] = None
+    pet_id: Optional[int] = None
+    contents: Optional[List[ContentCreate]] = None
 
 # Move all existing API endpoints to use the router
 @api_router.post("/client-type/", response_model=EnumCreate)
@@ -527,6 +568,58 @@ def get_providers_by_client_id(client_id: UUID, db: Session = Depends(get_db)):
         joinedload(Provider.request_types)
     ).filter(Provider.configuration_id == config.id).all()
     return providers
+
+# New POST endpoints for pets, interactors, requests, and interactions
+@api_router.post("/pets/", response_model=PetCreate)
+def create_pet(pet: PetCreate, db: Session = Depends(get_db)):
+    """Create a new pet record"""
+    db_pet = Pet(**pet.dict(exclude_unset=True))
+    db.add(db_pet)
+    db.commit()
+    db.refresh(db_pet)
+    return pet
+
+@api_router.post("/interactors/", response_model=InteractorCreate)
+def create_interactor(interactor: InteractorCreate, db: Session = Depends(get_db)):
+    """Create a new interactor record"""
+    db_interactor = Interactor(**interactor.dict(exclude_unset=True), date_added=datetime.now())
+    db.add(db_interactor)
+    db.commit()
+    db.refresh(db_interactor)
+    return interactor
+
+@api_router.post("/requests/", response_model=RequestCreate)
+def create_request(request: RequestCreate, db: Session = Depends(get_db)):
+    """Create a new request record"""
+    if not request.request_time:
+        request.request_time = datetime.now()
+    db_request = Request(**request.dict())
+    db.add(db_request)
+    db.commit()
+    db.refresh(db_request)
+    return request
+
+@api_router.post("/interactions/", response_model=InteractionCreate)
+def create_interaction(interaction: InteractionCreate, db: Session = Depends(get_db)):
+    """Create a new interaction record with optional content"""
+    # Create the interaction
+    interaction_data = interaction.dict(exclude={"contents"})
+    db_interaction = Interaction(**interaction_data)
+    db.add(db_interaction)
+    db.commit()
+    db.refresh(db_interaction)
+    
+    # Add contents if provided
+    if interaction.contents:
+        for content_item in interaction.contents:
+            content_data = content_item.dict()
+            if not content_data.get("timestamp"):
+                content_data["timestamp"] = datetime.now()
+            db_content = Content(interaction_id=db_interaction.id, **content_data)
+            db.add(db_content)
+        db.commit()
+    
+    return interaction
 
 # Include the API router
 app.include_router(api_router, prefix="/api")
