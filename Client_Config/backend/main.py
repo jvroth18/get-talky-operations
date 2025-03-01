@@ -136,14 +136,12 @@ class ConfigurationData(BaseModel):
 
 # New Pydantic models for POST requests
 class PetCreate(BaseModel):
-    id: int
     pet_type_id: int
     name: str
     age: Optional[int] = None
     sex_id: Optional[int] = None
 
 class InteractorCreate(BaseModel):
-    id: int
     first_name: str
     last_name: str
     phone_number: Optional[str] = None
@@ -151,18 +149,54 @@ class InteractorCreate(BaseModel):
     verified: Optional[bool] = False
 
 class RequestCreate(BaseModel):
-    id: int
     request_type_id: int
     provider_id: int
     request_time: Optional[datetime] = None
 
 class ContentCreate(BaseModel):
-    id: int
     interactor_role_id: int
     text: str
     timestamp: Optional[datetime] = None
 
 class InteractionCreate(BaseModel):
+    configuration_id: int
+    interaction_type_id: Optional[int] = None
+    interaction_summary: Optional[str] = None
+    interactor_name: Optional[str] = None
+    interaction_category_id: Optional[int] = None
+    interactor_id: Optional[int] = None
+    request_id: Optional[int] = None
+    pet_id: Optional[int] = None
+    contents: Optional[List[ContentCreate]] = None
+
+class PetCreateResponse(BaseModel):
+    id: int
+    pet_type_id: int
+    name: str
+    age: Optional[int] = None
+    sex_id: Optional[int] = None
+
+class InteractorCreateResponse(BaseModel):
+    id: int
+    first_name: str
+    last_name: str
+    phone_number: Optional[str] = None
+    email: Optional[str] = None
+    verified: Optional[bool] = False
+
+class RequestCreateResponse(BaseModel):
+    id: int
+    request_type_id: int
+    provider_id: int
+    request_time: Optional[datetime] = None
+
+class ContentCreateResponse(BaseModel):
+    id: int
+    interactor_role_id: int
+    text: str
+    timestamp: Optional[datetime] = None
+
+class InteractionCreateResponse(BaseModel):
     id: int
     configuration_id: int
     interaction_type_id: Optional[int] = None
@@ -173,6 +207,7 @@ class InteractionCreate(BaseModel):
     request_id: Optional[int] = None
     pet_id: Optional[int] = None
     contents: Optional[List[ContentCreate]] = None
+
 
 # Move all existing API endpoints to use the router
 @api_router.post("/client-type/", response_model=EnumCreate)
@@ -570,7 +605,7 @@ def get_providers_by_client_id(client_id: UUID, db: Session = Depends(get_db)):
     return providers
 
 # New POST endpoints for pets, interactors, requests, and interactions
-@api_router.post("/pets/", response_model=PetCreate)
+@api_router.post("/pets/", response_model=PetCreateResponse)
 def create_pet(pet: PetCreate, db: Session = Depends(get_db)):
     """Create a new pet record"""
     db_pet = Pet(**pet.dict(exclude_unset=True))
@@ -579,7 +614,7 @@ def create_pet(pet: PetCreate, db: Session = Depends(get_db)):
     db.refresh(db_pet)
     return pet
 
-@api_router.post("/interactors/", response_model=InteractorCreate)
+@api_router.post("/interactors/", response_model=InteractorCreateResponse)
 def create_interactor(interactor: InteractorCreate, db: Session = Depends(get_db)):
     """Create a new interactor record"""
     db_interactor = Interactor(**interactor.dict(exclude_unset=True), date_added=datetime.now())
@@ -588,7 +623,7 @@ def create_interactor(interactor: InteractorCreate, db: Session = Depends(get_db
     db.refresh(db_interactor)
     return interactor
 
-@api_router.post("/requests/", response_model=RequestCreate)
+@api_router.post("/requests/", response_model=RequestCreateResponse)
 def create_request(request: RequestCreate, db: Session = Depends(get_db)):
     """Create a new request record"""
     if not request.request_time:
@@ -599,7 +634,7 @@ def create_request(request: RequestCreate, db: Session = Depends(get_db)):
     db.refresh(db_request)
     return request
 
-@api_router.post("/interactions/", response_model=InteractionCreate)
+@api_router.post("/interactions/", response_model=InteractionCreateResponse)
 def create_interaction(interaction: InteractionCreate, db: Session = Depends(get_db)):
     """Create a new interaction record with optional content"""
     # Create the interaction
