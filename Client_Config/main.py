@@ -437,7 +437,7 @@ def read_configuration(config_id: int, db: Session = Depends(get_db)):
 
 @api_router.get("/configurations-uuid/{config_id}")
 def read_configuration(config_id: str, db: Session = Depends(get_db)):
-    print('Configuration ID: ', config_id)
+    print('Configuration ID Backend: ', config_id)
     config = db.query(Configuration).filter(Configuration.client_id == config_id).first()
     if not config:
         raise HTTPException(status_code=404, detail="Configuration not found")
@@ -759,6 +759,7 @@ def get_request_objects(client_id: UUID, status: Optional[str] = None, db: Sessi
         .outerjoin(PetType, Pet.pet_type_id == PetType.id)
         .outerjoin(Sex, Pet.sex_id == Sex.id)
         .filter(RequestType.configuration_id == config.id)
+        .order_by(Request.request_time.desc())
     )
     
     if status:
@@ -790,21 +791,6 @@ def get_request_objects(client_id: UUID, status: Optional[str] = None, db: Sessi
             )
         )
     
-    # Print and log the response objects
-    print("\nRequest Response Objects:")
-    for req in response:
-        print(f"\nRequest ID: {req.id}")
-        print(f"Request Type: {req.request_type}")
-        print(f"Appointment Length: {req.appointment_length}")
-        print(f"Client: {req.first_name} {req.last_name}")
-        print(f"Phone: {req.phone_number}")
-        print(f"Pet: {req.pet_name} ({req.pet_type})")
-        print(f"Pet Details: Age {req.pet_age}, Sex {req.pet_sex}")
-        print(f"Provider: {req.provider_name}")
-        print(f"Date: {req.appointment_date}")
-        print(f"Status: {req.status}")
-        print(f"Call Summary: {req.call_summary}")
-
     return response
 
 @api_router.get("/ui/get_client_interactions", response_model=List[ClientInteractionResponse])

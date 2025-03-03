@@ -50,7 +50,14 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Get Talky Command Center API")
+app = FastAPI(
+    title="Get Talky Command Center API",
+    description="API for managing Get Talky client configurations, interactions, and requests",
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json"
+)
 
 # Add CORS middleware
 app.add_middleware(
@@ -256,7 +263,7 @@ class UpdateRequestStatusRequest(BaseModel):
     status: str  # pending, approved, declined
 
 # Move all existing API endpoints to use the router
-@api_router.post("/client-type/", response_model=EnumCreate)
+@api_router.post("/client-type/", response_model=EnumCreate, tags=["Enum Types"])
 def create_client_type(client_type: EnumCreate, db: Session = Depends(get_db)):
     db_client_type = ClientType(**client_type.dict())
     db.add(db_client_type)
@@ -264,11 +271,11 @@ def create_client_type(client_type: EnumCreate, db: Session = Depends(get_db)):
     db.refresh(db_client_type)
     return client_type
 
-@api_router.get("/client-type/")
+@api_router.get("/client-type/", tags=["Enum Types"])
 def get_client_types(db: Session = Depends(get_db)):
     return db.query(ClientType).all()
 
-@api_router.delete("/client-type/{client_type_id}")
+@api_router.delete("/client-type/{client_type_id}", tags=["Enum Types"])
 def delete_client_type(client_type_id: int, db: Session = Depends(get_db)):
     db_client_type = db.query(ClientType).filter(ClientType.id == client_type_id).first()
     if not db_client_type:
@@ -410,34 +417,53 @@ def delete_provider_type(provider_type_id: int, db: Session = Depends(get_db)):
     return {"message": "Provider type deleted successfully"}
 
 # CRUD Endpoints
-@api_router.post("/configurations/", response_model=ConfigurationCreate)
+@api_router.post("/configurations/", response_model=ConfigurationCreate, tags=["Configurations"])
 def create_configuration(config: ConfigurationCreate, db: Session = Depends(get_db)):
+    """
+    Create a new client configuration.
+    
+    - **config**: Configuration data including name, client type, and optional settings
+    
+    Returns the created configuration
+    """
     db_config = Configuration(**config.dict(exclude_unset=True))
     db.add(db_config)
     db.commit()
     db.refresh(db_config)
     return config
 
-@api_router.get("/configurations/")
+@api_router.get("/configurations/", tags=["Configurations"])
 def get_configurations(db: Session = Depends(get_db)):
+    """
+    Retrieve all client configurations.
+    
+    Returns a list of all configurations in the database
+    """
     return db.query(Configuration).all()
 
-@api_router.get("/configurations/{config_id}")
+@api_router.get("/configurations/{config_id}", tags=["Configurations"])
 def read_configuration(config_id: int, db: Session = Depends(get_db)):
+    """
+    Retrieve a specific configuration by ID.
+    
+    - **config_id**: The numeric ID of the configuration to retrieve
+    
+    Returns the configuration if found, otherwise 404
+    """
     config = db.query(Configuration).filter(Configuration.id == config_id).first()
     if not config:
         raise HTTPException(status_code=404, detail="Configuration not found")
     return config
 
-@api_router.get("/configurations-uuid/{config_id}")
+@api_router.get("/configurations-uuid/{config_id}", tags=["Configurations"])
 def read_configuration(config_id: str, db: Session = Depends(get_db)):
-    print('Configuration ID: ', config_id)
+    print('Configuration ID Backend: ', config_id)
     config = db.query(Configuration).filter(Configuration.client_id == config_id).first()
     if not config:
         raise HTTPException(status_code=404, detail="Configuration not found")
     return config
 
-@api_router.put("/configurations/{config_id}", response_model=ConfigurationCreate)
+@api_router.put("/configurations/{config_id}", response_model=ConfigurationCreate, tags=["Configurations"])
 def update_configuration(config_id: int, config: ConfigurationCreate, db: Session = Depends(get_db)):
     db_config = db.query(Configuration).filter(Configuration.id == config_id).first()
     if not db_config:
@@ -448,7 +474,7 @@ def update_configuration(config_id: int, config: ConfigurationCreate, db: Sessio
     db.refresh(db_config)
     return config
 
-@api_router.post("/providers/", response_model=ProviderCreate)
+@api_router.post("/providers/", response_model=ProviderCreate, tags=["Providers"])
 def create_provider(provider: ProviderCreate, db: Session = Depends(get_db)):
     db_provider = Provider(
         configuration_id=provider.configuration_id,
@@ -471,7 +497,7 @@ def create_provider(provider: ProviderCreate, db: Session = Depends(get_db)):
 
     return provider
 
-@api_router.post("/request_types/", response_model=RequestTypeCreate)
+@api_router.post("/request_types/", response_model=RequestTypeCreate, tags=["Request Types"])
 def create_request_type(request_type: RequestTypeCreate, db: Session = Depends(get_db)):
     db_request_type = RequestType(**request_type.dict(exclude_unset=True))
     db.add(db_request_type)
@@ -503,14 +529,14 @@ def create_location(location: LocationCreate, db: Session = Depends(get_db)):
     db.refresh(db_location)
     return location
 
-@api_router.get("/providers/{config_id}")
+@api_router.get("/providers/{config_id}", tags=["Providers"])
 def get_providers(config_id: int, db: Session = Depends(get_db)):
     providers = db.query(Provider).options(
         joinedload(Provider.request_types)
     ).filter(Provider.configuration_id == config_id).all()
     return providers
 
-@api_router.get("/request_types/{config_id}")
+@api_router.get("/request_types/{config_id}", tags=["Request Types"])
 def get_request_types(config_id: int, db: Session = Depends(get_db)):
     request_types = db.query(RequestType).filter(RequestType.configuration_id == config_id).all()
     return request_types
@@ -530,7 +556,7 @@ def get_users(config_id: int, db: Session = Depends(get_db)):
     users = db.query(User).filter(User.configuration_id == config_id).all()
     return users
 
-@api_router.delete("/providers/{provider_id}")
+@api_router.delete("/providers/{provider_id}", tags=["Providers"])
 def delete_provider(provider_id: int, db: Session = Depends(get_db)):
     db_provider = db.query(Provider).filter(Provider.id == provider_id).first()
     if not db_provider:
@@ -539,7 +565,7 @@ def delete_provider(provider_id: int, db: Session = Depends(get_db)):
     db.commit()
     return {"message": "Provider deleted successfully"}
 
-@api_router.delete("/request_types/{request_type_id}")
+@api_router.delete("/request_types/{request_type_id}", tags=["Request Types"])
 def delete_request_type(request_type_id: int, db: Session = Depends(get_db)):
     db_request_type = db.query(RequestType).filter(RequestType.id == request_type_id).first()
     if not db_request_type:
@@ -711,18 +737,32 @@ def create_interaction(interaction: InteractionCreate, db: Session = Depends(get
     return db_interaction
 
 # Updated frontend UI endpoints
-@api_router.get("/ui/get_request_objects", response_model=List[ApplicationRequestResponse])
-def get_request_objects(client_id: UUID, status: Optional[str] = None, db: Session = Depends(get_db)):
+@api_router.get("/ui/get_request_objects", response_model=List[ApplicationRequestResponse], tags=["UI Endpoints"])
+def get_request_objects(client_id: str, status: Optional[str] = None, db: Session = Depends(get_db)):
     """
-    Get application requests for a client with optional status filtering
+    Get application requests for a client with optional status filtering.
     
-    Args:
-        client_id: UUID of the client (query parameter)
-        status: Filter by status (pending, approved, declined) (optional query parameter)
+    ## Parameters:
+    - **client_id**: UUID of the client
+    - **status**: Optional filter by status (pending, approved, declined)
         
-    Returns:
-        List of application requests with details from multiple tables
+    ## Returns:
+    List of application requests with details from multiple tables including:
+    - Request type and appointment details
+    - Interactor information
+    - Pet information
+    - Provider details
+    - Status and summary
     """
+
+    print('Client ID Backend: ', client_id)
+
+    # Convert string client_id to UUID
+    try:
+        client_id = UUID(client_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid client ID format")
+    
     # First find the configuration by client_id
     config = db.query(Configuration).filter(Configuration.client_id == client_id).first()
     if not config:
@@ -753,6 +793,7 @@ def get_request_objects(client_id: UUID, status: Optional[str] = None, db: Sessi
         .outerjoin(PetType, Pet.pet_type_id == PetType.id)
         .outerjoin(Sex, Pet.sex_id == Sex.id)
         .filter(RequestType.configuration_id == config.id)
+        .order_by(Request.request_time.desc())
     )
     
     if status:
@@ -784,33 +825,21 @@ def get_request_objects(client_id: UUID, status: Optional[str] = None, db: Sessi
             )
         )
 
-    # Print and log the response objects
-    print("\nRequest Response Objects:")
-    for req in response:
-        print(f"\nRequest ID: {req.id}")
-        print(f"Request Type: {req.request_type}")
-        print(f"Appointment Length: {req.appointment_length}")
-        print(f"Client: {req.first_name} {req.last_name}")
-        print(f"Phone: {req.phone_number}")
-        print(f"Pet: {req.pet_name} ({req.pet_type})")
-        print(f"Pet Details: Age {req.pet_age}, Sex {req.pet_sex}")
-        print(f"Provider: {req.provider_name}")
-        print(f"Date: {req.appointment_date}")
-        print(f"Status: {req.status}")
-        print(f"Call Summary: {req.call_summary}")
-
     return response
 
-@api_router.get("/ui/get_client_interactions", response_model=List[ClientInteractionResponse])
+@api_router.get("/ui/get_client_interactions", response_model=List[ClientInteractionResponse], tags=["UI Endpoints"])
 def get_client_interactions(client_id: UUID, db: Session = Depends(get_db)):
     """
-    Get all interactions for a client
+    Get all interactions for a client.
     
-    Args:
-        client_id: UUID of the client (query parameter)
+    ## Parameters:
+    - **client_id**: UUID of the client
         
-    Returns:
-        List of interactions with details
+    ## Returns:
+    List of interactions with details including:
+    - Interactor name and contact information
+    - Interaction timing
+    - Call summary
     """
     # First find the configuration by client_id
     config = db.query(Configuration).filter(Configuration.client_id == client_id).first()
@@ -849,16 +878,22 @@ def get_client_interactions(client_id: UUID, db: Session = Depends(get_db)):
     
     return response
 
-@api_router.put("/ui/update_request_status", response_model=RequestCreateResponse)
+@api_router.put("/ui/update_request_status", response_model=RequestCreateResponse, tags=["UI Endpoints"])
 def update_request_status(request: UpdateRequestStatusRequest, db: Session = Depends(get_db)):
     """
-    Update the status of a request
+    Update the status of a request.
     
-    Args:
-        request: UpdateRequestStatusRequest containing request_id and new status
+    ## Parameters:
+    - **request**: Object containing:
+      - request_id: ID of the request to update
+      - status: New status (pending, approved, declined)
         
-    Returns:
-        Updated request object
+    ## Returns:
+    Updated request object
+    
+    ## Raises:
+    - 404: If request not found
+    - 400: If status is invalid
     """
     # Find the request
     db_request = db.query(Request).filter(Request.id == request.request_id).first()

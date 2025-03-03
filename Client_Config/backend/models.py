@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Table
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Table, UUID
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from uuid import uuid4
@@ -83,7 +83,7 @@ class Configuration(Base):
     __tablename__ = "configuration"
     
     id = Column(Integer, primary_key=True)
-    client_id = Column(String, default=lambda: str(uuid4()))
+    client_id = Column(UUID, default=uuid4)
     name = Column(String(255))
     elevenlabs_model = Column(String(255))
     elevenlabs_voice_id = Column(String(255))
