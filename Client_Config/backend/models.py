@@ -276,6 +276,7 @@ class Content(Base):
     
     id = Column(Integer, primary_key=True)
     interaction_id = Column(Integer, ForeignKey("interaction.id"))
+    interactor_role = Column(String(255))
     interactor_role_id = Column(Integer, ForeignKey("get_talky_enum.interactor_role.id"))
     text = Column(String(255))
     timestamp = Column(DateTime)

@@ -4,7 +4,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from models import Base, Configuration, ClientType, Provider, RequestType, ClientApiKey, User, Location, UserRole, InteractorRole, PetType, Sex, InteractionCategory, ProviderType, Pet, Interactor, Request, Content, Interaction, RequestStatus
+from models import Base, Configuration, ClientType, Provider, RequestType, ClientApiKey, User, Location, UserRole, InteractorRole, PetType, Sex, InteractionCategory, ProviderType, Pet, Interactor, Content, Interaction, RequestStatus
+from models import Request as App_Request
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
@@ -688,7 +689,7 @@ def create_request(request: RequestCreate, db: Session = Depends(get_db)):
     """Create a new request record"""
     if not request.request_time:
         request.request_time = datetime.now()
-    db_request = Request(**request.dict())
+    db_request = App_Request(**request.dict())
     db.add(db_request)
     db.commit()
     db.refresh(db_request)

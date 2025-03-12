@@ -133,6 +133,7 @@ class EnumCreate(BaseModel):
     description: Optional[str] = None
 
 class ConfigurationData(BaseModel):
+    name: Optional[str] = None
     elevenlabs_voice_id: Optional[str] = None
     about_us: Optional[str] = None
     services: Optional[str] = None
@@ -261,6 +262,12 @@ class GetClientInteractionsRequest(BaseModel):
 class UpdateRequestStatusRequest(BaseModel):
     request_id: int
     status: str  # pending, approved, declined
+
+class ContentCreateSimple(BaseModel):
+    interaction_id: int
+    interactor_role: str
+    text: str
+    timestamp: Optional[datetime] = None
 
 # Move all existing API endpoints to use the router
 @api_router.post("/client-type/", response_model=EnumCreate, tags=["Enum Types"])
@@ -648,6 +655,7 @@ def get_configuration_data(client_id: UUID, db: Session = Depends(get_db)):
         })
 
     return ConfigurationData(
+        name=config.name,
         elevenlabs_voice_id=config.elevenlabs_voice_id,
         about_us=config.about_us,
         services=config.services,
@@ -736,15 +744,57 @@ def create_interaction(interaction: InteractionCreate, db: Session = Depends(get
     
     return db_interaction
 
+@api_router.post("/content/", response_model=ContentCreateResponse, tags=["Content"])
+def create_content(content: ContentCreateSimple, db: Session = Depends(get_db)):
+    """
+    Create a new content record for an existing interaction.
+    
+    ## Parameters:
+    - **content**: Object containing:
+      - interaction_id: ID of the interaction this content belongs to
+      - interactor_role: Role as a string
+      - text: The content text
+      - timestamp: Optional timestamp (defaults to current time)
+        
+    ## Returns:
+    The created content record
+    
+    ## Raises:
+    - 404: If interaction not found
+    """
+    # Set timestamp if not provided
+    if not content.timestamp:
+        content.timestamp = datetime.now()
+    
+    # Find the interaction to ensure it exists
+    interaction = db.query(Interaction).filter(Interaction.id == content.interaction_id).first()
+    if not interaction:
+        raise HTTPException(status_code=404, detail="Interaction not found")
+    
+    # Create the content record
+    db_content = Content(
+        interaction_id=content.interaction_id,
+        interactor_role=content.interactor_role,  # Use the string column directly
+        text=content.text,
+        timestamp=content.timestamp
+    )
+    
+    db.add(db_content)
+    db.commit()
+    db.refresh(db_content)
+    
+    return db_content
+
 # Updated frontend UI endpoints
 @api_router.get("/ui/get_request_objects", response_model=List[ApplicationRequestResponse], tags=["UI Endpoints"])
-def get_request_objects(client_id: str, status: Optional[str] = None, db: Session = Depends(get_db)):
+def get_request_objects(client_id: str, status: Optional[str] = None, request_day: Optional[str] = None, db: Session = Depends(get_db)):
     """
     Get application requests for a client with optional status filtering.
     
     ## Parameters:
     - **client_id**: UUID of the client
     - **status**: Optional filter by status (pending, approved, declined)
+    - **request_day**: Optional filter by date in ISO format (YYYY-MM-DD) to show only requests for a specific day
         
     ## Returns:
     List of application requests with details from multiple tables including:
@@ -798,6 +848,23 @@ def get_request_objects(client_id: str, status: Optional[str] = None, db: Sessio
     
     if status:
         query = query.filter(Request.request_status_id == db.query(RequestStatus.id).filter(RequestStatus.name == status).scalar_subquery())
+    
+    # Add date filtering if request_day is provided
+    if request_day:
+        try:
+            # Convert string date to datetime object
+            from datetime import datetime as dt
+            from sqlalchemy import func
+            
+            print('Request Day: ', request_day)
+
+            # Parse the date string (expecting YYYY-MM-DD format)
+            date_obj = dt.strptime(request_day, "%Y-%m-%d").date()
+            
+            # Filter using the date part of request_time
+            query = query.filter(func.date(Request.request_time) == date_obj)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD format.")
     
     results = query.all()
     
