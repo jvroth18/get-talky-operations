@@ -51,7 +51,14 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Get Talky Command Center API")
+app = FastAPI(
+    title="Get Talky Command Center API",
+    description="API for managing Get Talky client configurations, interactions, and requests",
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json"
+)
 
 # Add CORS middleware
 app.add_middleware(
@@ -133,6 +140,7 @@ class EnumCreate(BaseModel):
     description: Optional[str] = None
 
 class ConfigurationData(BaseModel):
+    name: Optional[str] = None
     elevenlabs_voice_id: Optional[str] = None
     about_us: Optional[str] = None
     services: Optional[str] = None
@@ -149,8 +157,8 @@ class PetCreate(BaseModel):
     sex_id: Optional[int] = None
 
 class InteractorCreate(BaseModel):
-    first_name: str
-    last_name: str
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
     phone_number: Optional[str] = None
     email: Optional[str] = None
     verified: Optional[bool] = False
@@ -162,8 +170,9 @@ class RequestCreate(BaseModel):
     request_time: Optional[datetime] = None
 
 class ContentCreate(BaseModel):
-    interactor_role_id: int
     text: str
+    interactor_role_id: Optional[int] = None
+    interactor_role: Optional[str] = None
     timestamp: Optional[datetime] = None
 
 class InteractionCreate(BaseModel):
@@ -188,8 +197,8 @@ class PetCreateResponse(BaseModel):
 
 class InteractorCreateResponse(BaseModel):
     id: int
-    first_name: str
-    last_name: str
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
     phone_number: Optional[str] = None
     email: Optional[str] = None
     verified: Optional[bool] = False
@@ -203,7 +212,8 @@ class RequestCreateResponse(BaseModel):
 
 class ContentCreateResponse(BaseModel):
     id: int
-    interactor_role_id: int
+    interactor_role_id: Optional[int] = None
+    interactor_role: Optional[str] = None
     text: str
     timestamp: Optional[datetime] = None
 
@@ -262,8 +272,14 @@ class UpdateRequestStatusRequest(BaseModel):
     request_id: int
     status: str  # pending, approved, declined
 
+class ContentCreateSimple(BaseModel):
+    interaction_id: int
+    interactor_role: Optional[str] = None
+    text: str
+    timestamp: Optional[datetime] = None
+
 # Move all existing API endpoints to use the router
-@api_router.post("/client-type/", response_model=EnumCreate)
+@api_router.post("/client-type/", response_model=EnumCreate, tags=["Enum Types"])
 def create_client_type(client_type: EnumCreate, db: Session = Depends(get_db)):
     db_client_type = ClientType(**client_type.dict())
     db.add(db_client_type)
@@ -271,11 +287,11 @@ def create_client_type(client_type: EnumCreate, db: Session = Depends(get_db)):
     db.refresh(db_client_type)
     return client_type
 
-@api_router.get("/client-type/")
+@api_router.get("/client-type/", tags=["Enum Types"])
 def get_client_types(db: Session = Depends(get_db)):
     return db.query(ClientType).all()
 
-@api_router.delete("/client-type/{client_type_id}")
+@api_router.delete("/client-type/{client_type_id}", tags=["Enum Types"])
 def delete_client_type(client_type_id: int, db: Session = Depends(get_db)):
     db_client_type = db.query(ClientType).filter(ClientType.id == client_type_id).first()
     if not db_client_type:
@@ -417,7 +433,7 @@ def delete_provider_type(provider_type_id: int, db: Session = Depends(get_db)):
     return {"message": "Provider type deleted successfully"}
 
 # CRUD Endpoints
-@api_router.post("/configurations/", response_model=ConfigurationCreate)
+@api_router.post("/configurations/", response_model=ConfigurationCreate, tags=["Configurations"])
 def create_configuration(config: ConfigurationCreate, db: Session = Depends(get_db)):
     db_config = Configuration(**config.dict(exclude_unset=True))
     db.add(db_config)
@@ -425,18 +441,18 @@ def create_configuration(config: ConfigurationCreate, db: Session = Depends(get_
     db.refresh(db_config)
     return config
 
-@api_router.get("/configurations/")
+@api_router.get("/configurations/", tags=["Configurations"])
 def get_configurations(db: Session = Depends(get_db)):
     return db.query(Configuration).all()
 
-@api_router.get("/configurations/{config_id}")
+@api_router.get("/configurations/{config_id}", tags=["Configurations"])
 def read_configuration(config_id: int, db: Session = Depends(get_db)):
     config = db.query(Configuration).filter(Configuration.id == config_id).first()
     if not config:
         raise HTTPException(status_code=404, detail="Configuration not found")
     return config
 
-@api_router.get("/configurations-uuid/{config_id}")
+@api_router.get("/configurations-uuid/{config_id}", tags=["Configurations"])
 def read_configuration(config_id: str, db: Session = Depends(get_db)):
     print('Configuration ID Backend: ', config_id)
     config = db.query(Configuration).filter(Configuration.client_id == config_id).first()
@@ -444,7 +460,7 @@ def read_configuration(config_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Configuration not found")
     return config
 
-@api_router.put("/configurations/{config_id}", response_model=ConfigurationCreate)
+@api_router.put("/configurations/{config_id}", response_model=ConfigurationCreate, tags=["Configurations"])
 def update_configuration(config_id: int, config: ConfigurationCreate, db: Session = Depends(get_db)):
     db_config = db.query(Configuration).filter(Configuration.id == config_id).first()
     if not db_config:
@@ -455,7 +471,7 @@ def update_configuration(config_id: int, config: ConfigurationCreate, db: Sessio
     db.refresh(db_config)
     return config
 
-@api_router.post("/providers/", response_model=ProviderCreate)
+@api_router.post("/providers/", response_model=ProviderCreate, tags=["Providers"])
 def create_provider(provider: ProviderCreate, db: Session = Depends(get_db)):
     db_provider = Provider(
         configuration_id=provider.configuration_id,
@@ -478,7 +494,7 @@ def create_provider(provider: ProviderCreate, db: Session = Depends(get_db)):
 
     return provider
 
-@api_router.post("/request_types/", response_model=RequestTypeCreate)
+@api_router.post("/request_types/", response_model=RequestTypeCreate, tags=["Request Types"])
 def create_request_type(request_type: RequestTypeCreate, db: Session = Depends(get_db)):
     db_request_type = RequestType(**request_type.dict(exclude_unset=True))
     db.add(db_request_type)
@@ -486,7 +502,7 @@ def create_request_type(request_type: RequestTypeCreate, db: Session = Depends(g
     db.refresh(db_request_type)
     return request_type
 
-@api_router.post("/client_api_keys/", response_model=ClientApiKeyCreate)
+@api_router.post("/client_api_keys/", response_model=ClientApiKeyCreate, tags=["API Keys"])
 def create_api_key(api_key: ClientApiKeyCreate, db: Session = Depends(get_db)):
     db_api_key = ClientApiKey(**api_key.dict())
     db.add(db_api_key)
@@ -494,7 +510,7 @@ def create_api_key(api_key: ClientApiKeyCreate, db: Session = Depends(get_db)):
     db.refresh(db_api_key)
     return api_key
 
-@api_router.post("/users/", response_model=UserCreate)
+@api_router.post("/users/", response_model=UserCreate, tags=["Users"])
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
     db_user = User(**user.dict(exclude_unset=True))
     db.add(db_user)
@@ -502,7 +518,7 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     db.refresh(db_user)
     return user
 
-@api_router.post("/locations/", response_model=LocationCreate)
+@api_router.post("/locations/", response_model=LocationCreate, tags=["Locations"])
 def create_location(location: LocationCreate, db: Session = Depends(get_db)):
     db_location = Location(**location.dict(exclude_unset=True))
     db.add(db_location)
@@ -510,34 +526,34 @@ def create_location(location: LocationCreate, db: Session = Depends(get_db)):
     db.refresh(db_location)
     return location
 
-@api_router.get("/providers/{config_id}")
+@api_router.get("/providers/{config_id}", tags=["Providers"])
 def get_providers(config_id: int, db: Session = Depends(get_db)):
     providers = db.query(Provider).options(
         joinedload(Provider.request_types)
     ).filter(Provider.configuration_id == config_id).all()
     return providers
 
-@api_router.get("/request_types/{config_id}")
+@api_router.get("/request_types/{config_id}", tags=["Request Types"])
 def get_request_types(config_id: int, db: Session = Depends(get_db)):
     request_types = db.query(RequestType).filter(RequestType.configuration_id == config_id).all()
     return request_types
 
-@api_router.get("/locations/{config_id}")
+@api_router.get("/locations/{config_id}", tags=["Locations"])
 def get_locations(config_id: int, db: Session = Depends(get_db)):
     locations = db.query(Location).filter(Location.configuration_id == config_id).all()
     return locations
 
-@api_router.get("/client_api_keys/{config_id}")
+@api_router.get("/client_api_keys/{config_id}", tags=["API Keys"])
 def get_api_keys(config_id: int, db: Session = Depends(get_db)):
     api_keys = db.query(ClientApiKey).filter(ClientApiKey.configuration_id == config_id).all()
     return api_keys
 
-@api_router.get("/users/{config_id}")
+@api_router.get("/users/{config_id}", tags=["Users"])
 def get_users(config_id: int, db: Session = Depends(get_db)):
     users = db.query(User).filter(User.configuration_id == config_id).all()
     return users
 
-@api_router.delete("/providers/{provider_id}")
+@api_router.delete("/providers/{provider_id}", tags=["Providers"])
 def delete_provider(provider_id: int, db: Session = Depends(get_db)):
     db_provider = db.query(Provider).filter(Provider.id == provider_id).first()
     if not db_provider:
@@ -546,7 +562,7 @@ def delete_provider(provider_id: int, db: Session = Depends(get_db)):
     db.commit()
     return {"message": "Provider deleted successfully"}
 
-@api_router.delete("/request_types/{request_type_id}")
+@api_router.delete("/request_types/{request_type_id}", tags=["Request Types"])
 def delete_request_type(request_type_id: int, db: Session = Depends(get_db)):
     db_request_type = db.query(RequestType).filter(RequestType.id == request_type_id).first()
     if not db_request_type:
@@ -555,7 +571,7 @@ def delete_request_type(request_type_id: int, db: Session = Depends(get_db)):
     db.commit()
     return {"message": "Request type deleted successfully"}
 
-@api_router.delete("/locations/{location_id}")
+@api_router.delete("/locations/{location_id}", tags=["Locations"])
 def delete_location(location_id: int, db: Session = Depends(get_db)):
     db_location = db.query(Location).filter(Location.id == location_id).first()
     if not db_location:
@@ -564,7 +580,7 @@ def delete_location(location_id: int, db: Session = Depends(get_db)):
     db.commit()
     return {"message": "Location deleted successfully"}
 
-@api_router.delete("/client_api_keys/{api_key_id}")
+@api_router.delete("/client_api_keys/{api_key_id}", tags=["API Keys"])
 def delete_api_key(api_key_id: int, db: Session = Depends(get_db)):
     db_api_key = db.query(ClientApiKey).filter(ClientApiKey.id == api_key_id).first()
     if not db_api_key:
@@ -573,7 +589,7 @@ def delete_api_key(api_key_id: int, db: Session = Depends(get_db)):
     db.commit()
     return {"message": "API key deleted successfully"}
 
-@api_router.delete("/users/{user_id}")
+@api_router.delete("/users/{user_id}", tags=["Users"])
 def delete_user(user_id: int, db: Session = Depends(get_db)):
     db_user = db.query(User).filter(User.id == user_id).first()
     if not db_user:
@@ -582,7 +598,7 @@ def delete_user(user_id: int, db: Session = Depends(get_db)):
     db.commit()
     return {"message": "User deleted successfully"}
 
-@api_router.get("/configuration-data/{client_id}", response_model=ConfigurationData)
+@api_router.get("/configuration-data/{client_id}", response_model=ConfigurationData, tags=["Configurations"])
 def get_configuration_data(client_id: UUID, db: Session = Depends(get_db)):
     # Query configuration by UUID
     config = db.query(Configuration).filter(Configuration.client_id == client_id).first()
@@ -629,6 +645,7 @@ def get_configuration_data(client_id: UUID, db: Session = Depends(get_db)):
         })
 
     return ConfigurationData(
+        name=config.name,
         elevenlabs_voice_id=config.elevenlabs_voice_id,
         about_us=config.about_us,
         services=config.services,
@@ -639,7 +656,7 @@ def get_configuration_data(client_id: UUID, db: Session = Depends(get_db)):
     )
 
 # New endpoints for getting request types and providers by client_id
-@api_router.get("/{client_id}/request_types")
+@api_router.get("/{client_id}/request_types", tags=["Request Types"])
 def get_request_types_by_client_id(client_id: UUID, db: Session = Depends(get_db)):
     """Get request types for a client by client_id (UUID)"""
     # First find the configuration by client_id
@@ -651,7 +668,7 @@ def get_request_types_by_client_id(client_id: UUID, db: Session = Depends(get_db
     request_types = db.query(RequestType).filter(RequestType.configuration_id == config.id).all()
     return request_types
 
-@api_router.get("/{client_id}/providers")
+@api_router.get("/{client_id}/providers", tags=["Providers"])
 def get_providers_by_client_id(client_id: UUID, db: Session = Depends(get_db)):
     """Get providers for a client by client_id (UUID)"""
     # First find the configuration by client_id
@@ -666,7 +683,7 @@ def get_providers_by_client_id(client_id: UUID, db: Session = Depends(get_db)):
     return providers
 
 # New POST endpoints for pets, interactors, requests, and interactions
-@api_router.post("/pets/", response_model=PetCreateResponse)
+@api_router.post("/pets/", response_model=PetCreateResponse, tags=["Pets"])
 def create_pet(pet: PetCreate, db: Session = Depends(get_db)):
     """Create a new pet record"""
     db_pet = Pet(**pet.dict(exclude_unset=True))
@@ -675,7 +692,7 @@ def create_pet(pet: PetCreate, db: Session = Depends(get_db)):
     db.refresh(db_pet)
     return db_pet
 
-@api_router.post("/interactors/", response_model=InteractorCreateResponse)
+@api_router.post("/interactors/", response_model=InteractorCreateResponse, tags=["Interactors"])
 def create_interactor(interactor: InteractorCreate, db: Session = Depends(get_db)):
     """Create a new interactor record"""
     db_interactor = Interactor(**interactor.dict(exclude_unset=True), date_added=datetime.now())
@@ -684,7 +701,7 @@ def create_interactor(interactor: InteractorCreate, db: Session = Depends(get_db
     db.refresh(db_interactor)
     return db_interactor
 
-@api_router.post("/requests/", response_model=RequestCreateResponse)
+@api_router.post("/requests/", response_model=RequestCreateResponse, tags=["Requests"])
 def create_request(request: RequestCreate, db: Session = Depends(get_db)):
     """Create a new request record"""
     if not request.request_time:
@@ -695,7 +712,7 @@ def create_request(request: RequestCreate, db: Session = Depends(get_db)):
     db.refresh(db_request)
     return db_request
 
-@api_router.post("/interactions/", response_model=InteractionCreateResponse)
+@api_router.post("/interactions/", response_model=InteractionCreateResponse, tags=["Interactions"])
 def create_interaction(interaction: InteractionCreate, db: Session = Depends(get_db)):
     """Create a new interaction record with optional content"""
     # Create the interaction
@@ -717,15 +734,50 @@ def create_interaction(interaction: InteractionCreate, db: Session = Depends(get
     
     return db_interaction
 
+@api_router.post("/content/", response_model=ContentCreateResponse, tags=["Content"])
+def create_content(content: ContentCreateSimple, db: Session = Depends(get_db)):
+    """
+    Create a new content record for an existing interaction.
+    
+    Args:
+        content: Object containing interaction_id, interactor_role, text, and optional timestamp
+        
+    Returns:
+        The created content record
+    """
+    # Set timestamp if not provided
+    if not content.timestamp:
+        content.timestamp = datetime.now()
+    
+    # Find the interaction to ensure it exists
+    interaction = db.query(Interaction).filter(Interaction.id == content.interaction_id).first()
+    if not interaction:
+        raise HTTPException(status_code=404, detail="Interaction not found")
+    
+    # Create the content record
+    db_content = Content(
+        interaction_id=content.interaction_id,
+        interactor_role=content.interactor_role,  # Use the string column directly
+        text=content.text,
+        timestamp=datetime.fromisoformat(content.timestamp) if isinstance(content.timestamp, str) else content.timestamp
+    )
+    
+    db.add(db_content)
+    db.commit()
+    db.refresh(db_content)
+    
+    return db_content
+
 # Updated frontend UI endpoints
-@api_router.get("/ui/get_request_objects", response_model=List[ApplicationRequestResponse])
-def get_request_objects(client_id: UUID, status: Optional[str] = None, db: Session = Depends(get_db)):
+@api_router.get("/ui/get_request_objects", response_model=List[ApplicationRequestResponse], tags=["UI Endpoints"])
+def get_request_objects(client_id: UUID, status: Optional[str] = None, request_day: Optional[str] = None, db: Session = Depends(get_db)):
     """
     Get application requests for a client with optional status filtering
     
     Args:
         client_id: UUID of the client (query parameter)
         status: Filter by status (pending, approved, declined) (optional query parameter)
+        request_day: Optional filter by date in ISO format (YYYY-MM-DD) to show only requests for a specific day
         
     Returns:
         List of application requests with details from multiple tables
@@ -738,7 +790,7 @@ def get_request_objects(client_id: UUID, status: Optional[str] = None, db: Sessi
     # Build the query with all necessary joins
     query = (
         db.query(
-            Request,
+            App_Request,
             RequestType.name.label("request_type"),
             RequestType.length.label("appointment_length"),
             Interactor.first_name,
@@ -752,19 +804,34 @@ def get_request_objects(client_id: UUID, status: Optional[str] = None, db: Sessi
             Provider.last_name.label("provider_last_name"),
             Interaction.interaction_summary.label("call_summary")
         )
-        .join(RequestType, Request.request_type_id == RequestType.id)
-        .join(Provider, Request.provider_id == Provider.id)
-        .outerjoin(Interaction, Request.id == Interaction.request_id)
+        .join(RequestType, App_Request.request_type_id == RequestType.id)
+        .join(Provider, App_Request.provider_id == Provider.id)
+        .outerjoin(Interaction, App_Request.id == Interaction.request_id)
         .outerjoin(Interactor, Interaction.interactor_id == Interactor.id)
         .outerjoin(Pet, Interaction.pet_id == Pet.id)
         .outerjoin(PetType, Pet.pet_type_id == PetType.id)
         .outerjoin(Sex, Pet.sex_id == Sex.id)
         .filter(RequestType.configuration_id == config.id)
-        .order_by(Request.request_time.desc())
+        .order_by(App_Request.request_time.desc())
     )
     
     if status:
-        query = query.filter(Request.request_status_id == db.query(RequestStatus.id).filter(RequestStatus.name == status).scalar_subquery())
+        query = query.filter(App_Request.request_status_id == db.query(RequestStatus.id).filter(RequestStatus.name == status).scalar_subquery())
+    
+    # Add date filtering if request_day is provided
+    if request_day:
+        try:
+            # Convert string date to datetime object
+            from datetime import datetime as dt
+            from sqlalchemy import func
+            
+            # Parse the date string (expecting YYYY-MM-DD format)
+            date_obj = dt.strptime(request_day, "%Y-%m-%d").date()
+            
+            # Filter using the date part of request_time
+            query = query.filter(func.date(App_Request.request_time) == date_obj)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD format.")
     
     results = query.all()
     
@@ -794,7 +861,7 @@ def get_request_objects(client_id: UUID, status: Optional[str] = None, db: Sessi
     
     return response
 
-@api_router.get("/ui/get_client_interactions", response_model=List[ClientInteractionResponse])
+@api_router.get("/ui/get_client_interactions", response_model=List[ClientInteractionResponse], tags=["UI Endpoints"])
 def get_client_interactions(client_id: UUID, db: Session = Depends(get_db)):
     """
     Get all interactions for a client
@@ -842,7 +909,7 @@ def get_client_interactions(client_id: UUID, db: Session = Depends(get_db)):
     
     return response
 
-@api_router.put("/ui/update_request_status", response_model=RequestCreateResponse)
+@api_router.put("/ui/update_request_status", response_model=RequestCreateResponse, tags=["UI Endpoints"])
 def update_request_status(request: UpdateRequestStatusRequest, db: Session = Depends(get_db)):
     """
     Update the status of a request
@@ -854,7 +921,7 @@ def update_request_status(request: UpdateRequestStatusRequest, db: Session = Dep
         Updated request object
     """
     # Find the request
-    db_request = db.query(Request).filter(Request.id == request.request_id).first()
+    db_request = db.query(App_Request).filter(App_Request.id == request.request_id).first()
     if not db_request:
         raise HTTPException(status_code=404, detail="Request not found")
     

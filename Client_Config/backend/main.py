@@ -150,8 +150,8 @@ class PetCreate(BaseModel):
     sex_id: Optional[int] = None
 
 class InteractorCreate(BaseModel):
-    first_name: str
-    last_name: str
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
     phone_number: Optional[str] = None
     email: Optional[str] = None
     verified: Optional[bool] = False
@@ -163,8 +163,9 @@ class RequestCreate(BaseModel):
     request_time: Optional[datetime] = None
 
 class ContentCreate(BaseModel):
-    interactor_role_id: int
     text: str
+    interactor_role_id: Optional[int] = None
+    interactor_role: Optional[str] = None
     timestamp: Optional[datetime] = None
 
 class InteractionCreate(BaseModel):
@@ -189,8 +190,8 @@ class PetCreateResponse(BaseModel):
 
 class InteractorCreateResponse(BaseModel):
     id: int
-    first_name: str
-    last_name: str
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
     phone_number: Optional[str] = None
     email: Optional[str] = None
     verified: Optional[bool] = False
@@ -204,7 +205,8 @@ class RequestCreateResponse(BaseModel):
 
 class ContentCreateResponse(BaseModel):
     id: int
-    interactor_role_id: int
+    interactor_role_id: Optional[int] = None
+    interactor_role: Optional[str] = None
     text: str
     timestamp: Optional[datetime] = None
 
@@ -265,7 +267,7 @@ class UpdateRequestStatusRequest(BaseModel):
 
 class ContentCreateSimple(BaseModel):
     interaction_id: int
-    interactor_role: str
+    interactor_role: Optional[str] = None
     text: str
     timestamp: Optional[datetime] = None
 
@@ -776,7 +778,7 @@ def create_content(content: ContentCreateSimple, db: Session = Depends(get_db)):
         interaction_id=content.interaction_id,
         interactor_role=content.interactor_role,  # Use the string column directly
         text=content.text,
-        timestamp=content.timestamp
+        timestamp=datetime.fromisoformat(content.timestamp) if isinstance(content.timestamp, str) else content.timestamp
     )
     
     db.add(db_content)
@@ -861,8 +863,13 @@ def get_request_objects(client_id: str, status: Optional[str] = None, request_da
             # Parse the date string (expecting YYYY-MM-DD format)
             date_obj = dt.strptime(request_day, "%Y-%m-%d").date()
             
+            print('Date Object: ', date_obj)
+
             # Filter using the date part of request_time
             query = query.filter(func.date(Request.request_time) == date_obj)
+
+            print('Query: ', query)
+
         except ValueError:
             raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD format.")
     
@@ -891,6 +898,8 @@ def get_request_objects(client_id: str, status: Optional[str] = None, request_da
                 call_summary=result.call_summary
             )
         )
+
+    print('Response: ', response)
 
     return response
 

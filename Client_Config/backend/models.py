@@ -278,11 +278,11 @@ class Content(Base):
     interaction_id = Column(Integer, ForeignKey("interaction.id"))
     interactor_role = Column(String(255))
     interactor_role_id = Column(Integer, ForeignKey("get_talky_enum.interactor_role.id"))
-    text = Column(String(255))
+    text = Column(String)
     timestamp = Column(DateTime)
 
     interaction = relationship("Interaction", back_populates="contents")
-    interactor_role = relationship("InteractorRole")
+    # interactor_role = relationship("InteractorRole")
 
 class Funnel(Base):
     __tablename__ = "funnel"
