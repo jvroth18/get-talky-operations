@@ -3,7 +3,7 @@
 # Configuration
 PROJECT_ID="talky-conversational-ai"
 REGION="us-central1"
-SERVICE_NAME="get-talky-backend"
+SERVICE_NAME="get-talky-backend-dev"
 VPC_CONNECTOR="vpc-connector"
 DB_USER_SECRET="get-talky-db-user"
 DB_PASS_SECRET="get-talky-db-password"
